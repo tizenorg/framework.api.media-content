@@ -441,8 +441,6 @@ typedef struct _media_content_cb_data {
 #define SELECT_MEDIA_GROUP_LIST	"SELECT DISTINCT %s FROM "DB_TABLE_MEDIA" WHERE validity=1 "
 
 #define SELECT_FOLDER_LIST 			"SELECT DISTINCT f.folder_uuid, f.path, f.name, f.storage_type, f.modified_time FROM "FOLDER_MEDIA_JOIN
-//#define SELECT_TAG_LIST				SELECT_EMPTY_TAG" UNION "SELECT_TAG_FROM_TAG_TAGMAP_MEDIA_JOIN
-//#define SELECT_PLAYLIST_LIST			SELECT_EMPTY_PLAYLIST" UNION "SELECT_PLAYLIST_FROM_PLAYLIST_PLAYLISTMAP_MEDIA_JOIN
 #define SELECT_TAG_LIST				"SELECT DISTINCT tag_id, name FROM "DB_VIEW_TAG" WHERE 1 "
 #define SELECT_PLAYLIST_LIST		"SELECT DISTINCT playlist_id, name, thumbnail_path FROM "DB_VIEW_PLAYLIST" WHERE 1 "
 #define SELECT_BOOKMARK_LIST		"SELECT DISTINCT b.bookmark_id, b.media_uuid, b.marked_time, b.thumbnail_path FROM "BOOKMARK_MEDIA_JOIN
@@ -454,8 +452,6 @@ typedef struct _media_content_cb_data {
 #define SELECT_COMPOSER_COUNT	"SELECT COUNT(DISTINCT composer) FROM "DB_TABLE_MEDIA" WHERE validity=1"
 #define SELECT_YEAR_COUNT			"SELECT COUNT(DISTINCT year) FROM "DB_TABLE_MEDIA" WHERE validity=1"
 #define SELECT_FOLDER_COUNT		"SELECT COUNT(DISTINCT f.folder_uuid) FROM "FOLDER_MEDIA_JOIN
-//#define SELECT_TAG_COUNT			"SELECT COUNT(*) FROM ("SELECT_TAG_LIST
-//#define SELECT_PLAYLIST_COUNT		"SELECT COUNT(*) FROM ("SELECT_PLAYLIST_LIST
 #define SELECT_TAG_COUNT			"SELECT COUNT(DISTINCT tag_id) FROM "DB_VIEW_TAG" WHERE 1 "
 #define SELECT_PLAYLIST_COUNT		"SELECT COUNT(DISTINCT playlist_id) FROM "DB_VIEW_PLAYLIST" WHERE 1 "
 #define SELECT_BOOKMARK_COUNT	"SELECT COUNT(DISTINCT b.bookmark_id) FROM "BOOKMARK_MEDIA_JOIN
@@ -473,8 +469,6 @@ typedef struct _media_content_cb_data {
 #define SELECT_MEDIA_COUNT_FROM_GROUP			"SELECT COUNT(*) FROM ("SELECT_MEDIA_FROM_GROUP		//to apply limit condition.
 #define SELECT_MEDIA_COUNT_FROM_GROUP_NULL		"SELECT COUNT(*) FROM ("SELECT_MEDIA_FROM_GROUP_NULL	//to apply limit condition.
 #define SELECT_MEDIA_COUNT_FROM_FOLDER			"SELECT COUNT(*) FROM "DB_TABLE_MEDIA" WHERE validity=1 AND folder_uuid='%q'"
-//#define SELECT_MEDIA_COUNT_FROM_TAG				"SELECT COUNT(*) FROM "DB_TABLE_TAG_MAP" WHERE tag_id=%d AND media_uuid IN 													(SELECT media_uuid FROM "DB_TABLE_MEDIA" WHERE validity=1"
-//#define SELECT_MEDIA_COUNT_FROM_PLAYLIST		"SELECT COUNT(*) FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d AND media_uuid IN  													(SELECT media_uuid FROM "DB_TABLE_MEDIA" WHERE validity=1"
 #define SELECT_MEDIA_COUNT_FROM_TAG				"SELECT COUNT(*) FROM "DB_VIEW_TAG" WHERE (tag_id=%d AND media_count>0) "
 #define SELECT_MEDIA_COUNT_FROM_PLAYLIST		"SELECT COUNT(*) FROM "DB_VIEW_PLAYLIST" WHERE (playlist_id=%d and media_count>0) "
 
@@ -490,8 +484,6 @@ typedef struct _media_content_cb_data {
 #define INSERT_TAG_TO_TAG						"INSERT INTO "DB_TABLE_TAG" (name) VALUES (%Q)"
 #define REMOVE_TAG_ITEM_FROM_TAG_MAP		"DELETE FROM "DB_TABLE_TAG_MAP" WHERE tag_id=%d AND media_uuid='%q'"
 #define UPDATE_TAG_NAME_FROM_TAG			"UPDATE "DB_TABLE_TAG" SET name='%q' WHERE tag_id=%d"
-//#define SELECT_TAG_COUNT_BY_MEDIA_ID			"SELECT COUNT(*) FROM "DB_TABLE_TAG" WHERE tag_id IN (SELECT tag_id FROM "DB_TABLE_TAG_MAP" WHERE media_uuid = '%q')"
-//#define SELECT_TAG_LIST_BY_MEDIA_ID				"SELECT * FROM "DB_TABLE_TAG" WHERE tag_id IN (SELECT tag_id FROM "DB_TABLE_TAG_MAP" WHERE media_uuid = '%s')"
 #define SELECT_TAG_COUNT_BY_MEDIA_ID			"SELECT COUNT(*) FROM "DB_VIEW_TAG" WHERE media_uuid = '%q'"
 #define SELECT_TAG_LIST_BY_MEDIA_ID				"SELECT tag_id, name FROM "DB_VIEW_TAG" WHERE media_uuid = '%s'"
 
@@ -500,12 +492,8 @@ typedef struct _media_content_cb_data {
 #define UPDATE_PLAYLIST_NAME_FROM_PLAYLIST			"UPDATE "DB_TABLE_PLAYLIST" SET name='%q' WHERE playlist_id=%d"
 #define UPDATE_PLAYLIST_THUMBNAIL_FROM_PLAYLIST			"UPDATE "DB_TABLE_PLAYLIST" SET thumbnail_path='%q' WHERE playlist_id=%d"
 #define SELECT_PLAYLIST_ID_FROM_PLAYLIST				"SELECT playlist_id FROM "DB_TABLE_PLAYLIST" WHERE name='%q'"
-//#define SELECT_PLAYLIST_ITEM_ID_FROM_PLAYLIST_MAP		"SELECT pm._id, pm.media_uuid FROM "PLAYLISTMAP_MEDIA_JOIN" AND pm.playlist_id=%d"
-#define SELECT_PLAYLIST_ITEM_ID_FROM_PLAYLIST_VIEW		"SELECT pm_id, media_uuid FROM "DB_VIEW_PLAYLIST" WHERE playlist_id=%d "
-
-//#define SELECT_PLAY_ORDER_FROM_PLAYLIST_MAP			"SELECT play_order FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d and _id=%d"
+#define SELECT_PLAYLIST_ITEM_ID_FROM_PLAYLIST_VIEW	"SELECT pm_id, media_uuid FROM "DB_VIEW_PLAYLIST" WHERE (playlist_id=%d and media_count>0) "
 #define SELECT_PLAY_ORDER_FROM_PLAYLIST_VIEW			"SELECT play_order FROM "DB_VIEW_PLAYLIST" WHERE playlist_id=%d and pm_id=%d"
-//#define SELECT_MAX_PLAY_ORDER_FROM_PLAYLIST_MAP	"SELECT MAX(play_order) FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d"
 #define SELECT_MAX_PLAY_ORDER_FROM_PLAYLIST_VIEW	"SELECT MAX(play_order) FROM "DB_VIEW_PLAYLIST" WHERE playlist_id=%d"
 #define REMOVE_PLAYLIST_ITEM_FROM_PLAYLIST_MAP		"DELETE FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d AND _id=%d"
 #define UPDATE_PLAYLIST_ORDER_FROM_PLAYLIST_MAP		"UPDATE "DB_TABLE_PLAYLIST_MAP" SET play_order=%d WHERE playlist_id=%d AND _id=%d"
@@ -528,8 +516,6 @@ typedef struct _media_content_cb_data {
 #define UPDATE_IMAGE_META_FROM_MEDIA	"UPDATE "DB_TABLE_MEDIA" SET orientation=%d WHERE media_uuid='%q'"
 
 /* Get Media list of Group */
-//#define MEDIA_INFO_ITEM "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, thumbnail_path, description,
-//							rating, favourite, author, provider, content_name, category, location_tag, age_rating, is_drm, storage_type"
 #define MEDIA_INFO_ITEM "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, thumbnail_path, description, \
 							rating, favourite, author, provider, content_name, category, location_tag, age_rating, keyword, is_drm, storage_type, longitude, latitude, altitude, width, height, datetaken, orientation, title, album, artist, genre, composer, year, recorded_date, copyright, track_num, bitrate, duration, played_count, last_played_time, last_played_position, samplerate, channel, burst_id"
 
