@@ -51,12 +51,6 @@ bool get_audio_meta(audio_meta_h audio)
 	media_content_debug("audio_id : [%s]", c_value);
 	SAFE_FREE(c_value);
 
-	ret = audio_meta_get_title(audio, &c_value);
-	if(ret != MEDIA_CONTENT_ERROR_NONE)
-		media_content_error("error when get meta : [%d]", ret);
-	media_content_debug("title : [%s]", c_value);
-	SAFE_FREE(c_value);
-
 	ret = audio_meta_get_album(audio, &c_value);
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		media_content_error("error when get meta : [%d]", ret);
@@ -162,12 +156,6 @@ bool get_video_meta(video_meta_h video)
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		media_content_error("error when get meta : [%d]", ret);
 	media_content_debug("video_id : [%s]", c_value);
-	SAFE_FREE(c_value);
-
-	ret = video_meta_get_title(video, &c_value);
-	if(ret != MEDIA_CONTENT_ERROR_NONE)
-		media_content_error("error when get meta : [%d]", ret);
-	media_content_debug("title : [%s]", c_value);
 	SAFE_FREE(c_value);
 
 	ret = video_meta_get_album(video, &c_value);
@@ -390,12 +378,6 @@ bool media_item_cb(media_info_h media, void *user_data)
 				SAFE_FREE(burst_id);
 			}
 
-			ret = image_meta_get_weather(image, &weather);
-			if(ret != MEDIA_CONTENT_ERROR_NONE)
-				media_content_error("error image_meta_get_weather : [%d]", ret);
-			else
-				media_content_debug("[image] weather : %s", weather);
-
 			ret = image_meta_destroy(image);
 			if(ret != MEDIA_CONTENT_ERROR_NONE)
 				media_content_error("error image_meta_destroy : [%d]", ret);
@@ -548,6 +530,7 @@ bool media_item_cb(media_info_h media, void *user_data)
 	//media_info_update_to_db(media);
 	SAFE_FREE(media_id);
 #endif
+	SAFE_FREE(media_id);
 	return true;
 }
 
@@ -668,6 +651,8 @@ bool test_album_from_db(int album_id)
 	if(media_album_get_artist(album_h, &artist) != MEDIA_CONTENT_ERROR_NONE)
 	{
 		media_album_destroy(album_h);
+		/* fix prevent: Resource Leak */
+		SAFE_FREE(album_name);
 		return false;
 	}
 
@@ -829,6 +814,7 @@ bool album_list_cb(media_album_h album, void *user_data)
 		}
 
 		media_content_debug("album_name : [%s]", album_name);
+		SAFE_FREE(album_name);
 
 		if(media_album_get_artist(album, &artist) != MEDIA_CONTENT_ERROR_NONE)
 		{
@@ -837,6 +823,7 @@ bool album_list_cb(media_album_h album, void *user_data)
 		}
 
 		media_content_debug("artist : [%s]", artist);
+		SAFE_FREE(artist);
 
 		if(media_album_get_album_art(album, &album_art) != MEDIA_CONTENT_ERROR_NONE)
 		{
@@ -845,9 +832,6 @@ bool album_list_cb(media_album_h album, void *user_data)
 		}
 
 		media_content_debug("album_art : [%s]", album_art);
-
-		SAFE_FREE(album_name);
-		SAFE_FREE(artist);
 		SAFE_FREE(album_art);
 
 		if(media_album_get_media_count_from_db(album_id, filter, &media_count) != MEDIA_CONTENT_ERROR_NONE)
@@ -1137,9 +1121,6 @@ int test_gallery_scenario(void)
 				if(ret != MEDIA_CONTENT_ERROR_NONE) {
 					media_content_error("media_info_get_video failed: %d", ret);
 				} else {
-					ret = video_meta_get_title(video_handle, &title);
-					if(ret != MEDIA_CONTENT_ERROR_NONE)
-						media_content_error("error video_meta_get_title : [%d]", ret);
 					ret = video_meta_get_artist(video_handle, &artist);
 					if(ret != MEDIA_CONTENT_ERROR_NONE)
 						media_content_error("error video_meta_get_artist : [%d]", ret);
@@ -1276,9 +1257,6 @@ int test_gallery_scenario(void)
 					if(ret != MEDIA_CONTENT_ERROR_NONE) {
 						media_content_error("media_info_get_video failed: %d", ret);
 					} else {
-						ret = video_meta_get_title(video_handle, &title);
-						if(ret != MEDIA_CONTENT_ERROR_NONE)
-							media_content_error("error video_meta_get_title : [%d]", ret);
 						ret = video_meta_get_artist(video_handle, &artist);
 						if(ret != MEDIA_CONTENT_ERROR_NONE)
 							media_content_error("error video_meta_get_artist : [%d]", ret);
@@ -1654,6 +1632,9 @@ int test_folder_operation(void)
 	media_filter_destroy(m_filter);
 
 	test_filter_destroy();
+
+	/* fix prevent: Resource Leak */
+	SAFE_FREE(folder_id);
 
 	return ret;
 }
@@ -2258,6 +2239,10 @@ int test_update_operation()
 			}
 #endif
 		}
+
+		/* fix prevent: Resource Leak */
+		SAFE_FREE(media_id);
+		SAFE_FREE(media_path);
 	}
 
 	return MEDIA_CONTENT_ERROR_NONE;
@@ -2396,6 +2381,9 @@ bool thumbnail_create_cb(media_info_h media, void *user_data)
 			media_content_error("media_info_create_thumbnail failed: %d", ret);
 	}
 
+	/* fix prevent: Resource leak */
+	SAFE_FREE(media_id);
+
 	return true;
 }
 
@@ -2434,6 +2422,9 @@ bool thumbnail_cancel_cb(media_info_h media, void *user_data)
 
 	if(g_cnt == g_media_cnt)
 		g_main_loop_quit(g_loop);
+
+	/* fix prevent: Resource leak */
+	SAFE_FREE(media_id);
 
 	return true;
 }

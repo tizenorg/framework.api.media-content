@@ -187,6 +187,7 @@ int audio_meta_clone(audio_meta_h *dst, audio_meta_h src)
 		}
 
 		_dst->bitrate = _src->bitrate;
+		_dst->bitpersample = _src->bitpersample;
 		_dst->samplerate = _src->samplerate;
 		_dst->channel = _src->channel;
 		_dst->duration = _src->duration;
@@ -225,37 +226,6 @@ int audio_meta_get_media_id(audio_meta_h audio, char **media_id)
 		else
 		{
 			*media_id = NULL;
-		}
-		ret = MEDIA_CONTENT_ERROR_NONE;
-
-	}
-	else
-	{
-		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
-		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
-	}
-
-	return ret;
-}
-
-int audio_meta_get_title(audio_meta_h audio, char **title)
-{
-	int ret = MEDIA_CONTENT_ERROR_NONE;
-	audio_meta_s *_audio = (audio_meta_s*)audio;
-	if(_audio)
-	{
-		if(STRING_VALID(_audio->title))
-		{
-			*title = strdup(_audio->title);
-			if(*title == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
-		}
-		else
-		{
-			*title = NULL;
 		}
 		ret = MEDIA_CONTENT_ERROR_NONE;
 
@@ -558,6 +528,25 @@ int audio_meta_get_bit_rate(audio_meta_h audio, int *bit_rate)
 	if(_audio && bit_rate)
 	{
 		*bit_rate = _audio->bitrate;
+		ret = MEDIA_CONTENT_ERROR_NONE;
+	}
+	else
+	{
+		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
+		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
+	}
+
+	return ret;
+}
+
+int audio_meta_get_bitpersample(audio_meta_h audio, int *bitpersample)
+{
+	int ret = MEDIA_CONTENT_ERROR_NONE;
+	audio_meta_s *_audio = (audio_meta_s*)audio;
+
+	if(_audio && bitpersample)
+	{
+		*bitpersample = _audio->bitpersample;
 		ret = MEDIA_CONTENT_ERROR_NONE;
 	}
 	else

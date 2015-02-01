@@ -112,8 +112,10 @@ static void __media_info_thumbnail_completed_cb(int error, const char *path, voi
 
 static bool __media_info_delete_batch_cb(media_info_h media, void *user_data)
 {
+	int err = MEDIA_INFO_ERROR_NONE;
 	char *thumb_path = NULL;
 	media_content_type_e media_type = 0;
+	GArray *thumb_list = (GArray *)user_data;
 
 	if(media == NULL)
 	{
@@ -121,19 +123,22 @@ static bool __media_info_delete_batch_cb(media_info_h media, void *user_data)
 		return true;
 	}
 
-	media_info_get_media_type(media, &media_type);
-	media_content_debug("media_type : [%d]", media_type);
+	err = media_info_get_media_type(media, &media_type);
+	if (err == MEDIA_INFO_ERROR_NONE) {
+		media_content_debug("media_type : [%d]", media_type);
 
-	media_info_get_thumbnail_path(media, &thumb_path);
-	if (STRING_VALID(thumb_path)) {
-		if (strncmp(MEDIA_CONTENT_THUMB_DEFAULT_PATH, thumb_path, strlen(MEDIA_CONTENT_THUMB_DEFAULT_PATH)) != 0) {
-			media_content_debug("Deleting thumbnail : [%s]", thumb_path);
-			if (unlink(thumb_path) < 0) {
-				media_content_error("failed to delete : %s", strerror(errno));
+		media_info_get_thumbnail_path(media, &thumb_path);
+		if (STRING_VALID(thumb_path)) {
+			if (strncmp(MEDIA_CONTENT_THUMB_DEFAULT_PATH, thumb_path, strlen(MEDIA_CONTENT_THUMB_DEFAULT_PATH)) != 0) {
+				g_array_append_val(thumb_list, thumb_path);
+			} else {
+				SAFE_FREE(thumb_path);
 			}
+		} else {
+			SAFE_FREE(thumb_path);
 		}
-
-		SAFE_FREE(thumb_path);
+	} else {
+		media_content_error("media_info_get_media_type failed");
 	}
 
 	return true;
@@ -176,6 +181,15 @@ static int __media_info_insert_batch(media_batch_insert_e insert_type, const cha
 	for (idx = 0; idx < array_length; idx++) {
 		if (STRING_VALID(path_array[idx])) {
 			int size = strlen(path_array[idx]);
+
+			ret = _media_util_check_file(path_array[idx]);
+			if (ret != MEDIA_CONTENT_ERROR_NONE) {
+				fclose(fp);
+				if (unlink(list_path) < 0) {
+					media_content_error("failed to delete : %s", strerror(errno));
+				}
+				return ret;
+			}
 
 			nwrites = fwrite(path_array[idx], 1, size, fp);
 			if (nwrites != size) {
@@ -266,6 +280,7 @@ typedef enum {
 	MEDIA_INFO_COPYRIGHT,
 	MEDIA_INFO_TRACK_NUM,
 	MEDIA_INFO_BITRATE,
+	MEDIA_INFO_BITPERSAMPLE,
 	MEDIA_INFO_DURATION,
 	MEDIA_INFO_PLAYED_COUNT,	//40
 	MEDIA_INFO_LAST_PLAYED_TIME,
@@ -464,6 +479,7 @@ void _media_info_item_get_detail(sqlite3_stmt* stmt, media_info_h media)
 				_media->audio_meta->track_num = strdup((const char *)sqlite3_column_text(stmt, MEDIA_INFO_TRACK_NUM));
 
 			_media->audio_meta->bitrate = sqlite3_column_int(stmt, MEDIA_INFO_BITRATE);
+			_media->audio_meta->bitpersample = sqlite3_column_int(stmt, MEDIA_INFO_BITPERSAMPLE);
 			_media->audio_meta->duration = sqlite3_column_int(stmt, MEDIA_INFO_DURATION);
 			_media->audio_meta->played_count = sqlite3_column_int(stmt, MEDIA_INFO_PLAYED_COUNT);
 			_media->audio_meta->played_time = sqlite3_column_int(stmt, MEDIA_INFO_LAST_PLAYED_TIME);
@@ -522,6 +538,11 @@ int media_info_insert_to_db(const char *path, media_info_h *info)
 	{
 		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
 		return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
+	}
+
+	ret = _media_util_check_file(path);
+	if (ret != MEDIA_CONTENT_ERROR_NONE) {
+		return ret;
 	}
 
 	folder_path = g_path_get_dirname(path);
@@ -638,6 +659,49 @@ int media_info_delete_from_db(const char *media_id)
 	return _content_error_capi(MEDIA_CONTENT_TYPE, ret);
 }
 
+static int __media_info_delete_thumb_from_list(GArray *thumb_list)
+{
+	int i = 0;
+	int list_len = 0;
+	char *thumb_path = NULL;
+
+	if (thumb_list != NULL) {
+
+		list_len = thumb_list->len;
+
+		for (i = 0; i < list_len; i ++) {
+			thumb_path = g_array_index(thumb_list, char*, i);
+			media_content_debug("thumb path [%s]", thumb_path);
+			if (unlink(thumb_path) < 0) {
+				media_content_error("failed to delete : %s", strerror(errno));
+			}
+		}
+	}
+	return MEDIA_CONTENT_ERROR_NONE;
+}
+
+static int __media_info_release_thumb_list(GArray *thumb_list)
+{
+	int i = 0;
+	int list_len = 0;
+	char *thumb_path = NULL;
+
+	if (thumb_list != NULL) {
+
+		list_len = thumb_list->len;
+
+		for (i = 0; i < list_len; i ++) {
+			thumb_path = g_array_index(thumb_list, char*, 0);
+			g_array_remove_index(thumb_list,0);
+			SAFE_FREE(thumb_path);
+		}
+
+		g_array_free(thumb_list, FALSE);
+	}
+
+	return MEDIA_CONTENT_ERROR_NONE;
+}
+
 int media_info_delete_batch_from_db(filter_h filter)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
@@ -646,6 +710,7 @@ int media_info_delete_batch_from_db(filter_h filter)
 	filter_s *_filter = NULL;
 	attribute_h attr;
 	char *condition_query = NULL;
+	GArray *thumb_list = NULL;
 
 	if(filter == NULL)
 	{
@@ -653,8 +718,10 @@ int media_info_delete_batch_from_db(filter_h filter)
 		return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
 	}
 
+	thumb_list = g_array_new(FALSE, FALSE, sizeof(char*));
+
 	/* Delete thumbnail of each item */
-	ret = _media_db_get_group_item(NULL, filter, __media_info_delete_batch_cb, NULL, MEDIA_GROUP_NONE);
+	ret = _media_db_get_group_item(NULL, filter, __media_info_delete_batch_cb, thumb_list, MEDIA_GROUP_NONE);
 
 	_filter = (filter_s*)filter;
 	attr = _content_get_attirbute_handle();
@@ -662,7 +729,10 @@ int media_info_delete_batch_from_db(filter_h filter)
 	if(_filter->condition)
 	{
 		ret = _media_filter_attribute_generate(attr, _filter->condition, _filter->condition_collate_type, &condition_query);
-		media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
+		if (ret != MEDIA_CONTENT_ERROR_NONE) {
+			__media_info_release_thumb_list(thumb_list);
+			return ret;
+		}
 	}
 
 	if(STRING_VALID(condition_query))
@@ -672,6 +742,8 @@ int media_info_delete_batch_from_db(filter_h filter)
 	else
 	{
 		SAFE_FREE(condition_query);
+		__media_info_release_thumb_list(thumb_list);
+
 		return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
 	}
 
@@ -683,6 +755,9 @@ int media_info_delete_batch_from_db(filter_h filter)
 		media_content_debug("Batch deletion is successfull. Send notification for this");
 		media_svc_publish_noti(_content_get_db_handle(), MS_MEDIA_ITEM_DIRECTORY, MS_MEDIA_ITEM_UPDATE, MEDIA_ROOT_PATH_INTERNAL, -1, NULL, NULL);
 		media_svc_publish_noti(_content_get_db_handle(), MS_MEDIA_ITEM_DIRECTORY, MS_MEDIA_ITEM_UPDATE, MEDIA_ROOT_PATH_SDCARD, -1, NULL, NULL);
+
+		__media_info_delete_thumb_from_list(thumb_list);
+		__media_info_release_thumb_list(thumb_list);
 	}
 
 	SAFE_FREE(condition_query);
@@ -1257,6 +1332,7 @@ int media_info_clone(media_info_h *dst, media_info_h src)
 			_dst->audio_meta->samplerate = _src->audio_meta->samplerate;
 			_dst->audio_meta->duration = _src->audio_meta->duration;
 			_dst->audio_meta->bitrate = _src->audio_meta->bitrate;
+			_dst->audio_meta->bitpersample = _src->audio_meta->bitpersample;
 			_dst->audio_meta->played_count = _src->audio_meta->played_count;
 			_dst->audio_meta->played_time = _src->audio_meta->played_time;
 			_dst->audio_meta->played_position = _src->audio_meta->played_position;
@@ -1585,6 +1661,7 @@ int media_info_get_audio(media_info_h media, audio_meta_h *audio)
 
 	_audio->duration = _media->audio_meta->duration;
 	_audio->bitrate = _media->audio_meta->bitrate;
+	_audio->bitpersample = _media->audio_meta->bitpersample;
 	_audio->samplerate = _media->audio_meta->samplerate;
 	_audio->channel = _media->audio_meta->channel;
 	_audio->played_time = _media->audio_meta->played_time;
@@ -2879,7 +2956,16 @@ int media_info_refresh_metadata_to_db(const char *media_id)
 		return ret;
 	}
 
+	ret = _media_util_check_file(file_path);
+	if (ret != MEDIA_CONTENT_ERROR_NONE) {
+		return ret;
+	}
+
 	ret = media_svc_refresh_item(_content_get_db_handle(), storage_type, file_path);
+	if (ret != MEDIA_INFO_ERROR_NONE)
+	{
+		ret = _content_error_capi(MEDIA_CONTENT_TYPE, ret);
+	}
 
 	SAFE_FREE(file_path);
 	media_info_destroy(media);
@@ -2901,6 +2987,11 @@ int media_info_move_to_db(media_info_h media, const char* dst_path)
 	}
 
 	media_info_s *_media = (media_info_s*)media;
+
+	ret = _media_util_check_file(dst_path);
+	if (ret != MEDIA_CONTENT_ERROR_NONE) {
+		return ret;
+	}
 
 	ret = media_svc_get_storage_type(_media->file_path, &src_storage_type);
 	if(ret != MEDIA_INFO_ERROR_NONE)

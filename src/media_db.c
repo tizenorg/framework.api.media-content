@@ -393,9 +393,6 @@ int _media_db_get_folder(filter_h filter, media_folder_cb callback, void *user_d
 
 	while(sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		/*this is temporary log to fix bug*/
-		media_content_error("");
-
 		media_folder_s *_folder = (media_folder_s*)calloc(1, sizeof(media_folder_s));
 
 		if(_folder == NULL)
@@ -404,8 +401,6 @@ int _media_db_get_folder(filter_h filter, media_folder_cb callback, void *user_d
 			SQLITE3_FINALIZE(stmt);
 			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
 		}
-		/*this is temporary log to fix bug*/
-		media_content_error("folder handle %x", _folder);
 
 		if(STRING_VALID((const char *)sqlite3_column_text(stmt, 0)))
 			_folder->folder_id = strdup((const char *)sqlite3_column_text(stmt, 0));
@@ -504,7 +499,8 @@ int _media_db_get_playlist_item(int playlist_id, filter_h filter, playlist_membe
 	attr = _content_get_attirbute_handle();
 	memset(select_query, 0x00, sizeof(select_query));
 
-	snprintf(select_query, sizeof(select_query), SELECT_PLAYLIST_ITEM_ID_FROM_PLAYLIST_VIEW, playlist_id);
+	//snprintf(select_query, sizeof(select_query), SELECT_PLAYLIST_ITEM_ID_FROM_PLAYLIST_VIEW, playlist_id);
+	snprintf(select_query, sizeof(select_query), SELECT_PLAYLIST_ITEM_ALL_FROM_PLAYLIST_VIEW, playlist_id);
 
 	ret = __media_db_make_query(filter, attr, select_query, sizeof(select_query), &condition_query, &option_query);
 	media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
@@ -517,23 +513,26 @@ int _media_db_get_playlist_item(int playlist_id, filter_h filter, playlist_membe
 	while(sqlite3_step(stmt) == SQLITE_ROW)
 	{
 		int playlist_member_id = 0;
-		char media_uuid[MEDIA_CONTENT_UUID_SIZE+1];
-		media_info_h media = NULL;
-		memset(media_uuid, 0x00, sizeof(media_uuid));
+		playlist_member_id = (int)sqlite3_column_int(stmt, 50);	//50 is Just for Commercial!
 
-		playlist_member_id = (int)sqlite3_column_int(stmt, 0);
+		media_info_s *_media = (media_info_s*)calloc(1, sizeof(media_info_s));
 
-		if(STRING_VALID((const char *)sqlite3_column_text(stmt, 1)))
-			strncpy(media_uuid, (const char *)sqlite3_column_text(stmt, 1), MEDIA_CONTENT_UUID_SIZE);
-
-		ret = media_info_get_media_from_db(media_uuid, &media);
-
-		if(callback(playlist_member_id, media, user_data) == false)
+		if(_media == NULL)
 		{
-			media_info_destroy(media);
+			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+			SQLITE3_FINALIZE(stmt);
+			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+		}
+
+		_media_info_item_get_detail(stmt, (media_info_h)_media);
+
+		if(callback(playlist_member_id, (media_info_h)_media, user_data) == false)
+		{
+			media_info_destroy((media_info_h)_media);
 			break;
 		}
-		media_info_destroy(media);
+		media_info_destroy((media_info_h)_media);
+
 	}
 
 	SQLITE3_FINALIZE(stmt);
@@ -729,7 +728,7 @@ int _media_db_get_group_item_count(const char *group_name, filter_h filter, grou
 
 	if(group_type == MEDIA_GROUP_NONE)
 	{
-		/* There are 2 ways to get count for media table for performance 
+		/* There are 2 ways to get count for media table for performance
 			If user wants to set offset and count, use SQL SELECT_MEDIA_COUNT_FROM_MEDIA.
 			If user wants to get count without setting count, SELECT_MEDIA_COUNT_FROM_MEDIA_SIMPLE */
 		_filter = (filter_s*)filter;

@@ -57,6 +57,7 @@ static bool __is_pinyin_needed(void)
 {
 	char *lang = NULL;
 	char *china = "zh_CN";
+	char *hongkong = "zh_HK";
 	int ret = FALSE;
 
 	/*Check CSC first*/
@@ -66,7 +67,8 @@ static bool __is_pinyin_needed(void)
 	{
 		/*Check Language Setting*/
 		lang = vconf_get_str(VCONFKEY_LANGSET);
-		if(strncmp(china, lang, strlen(china)) == 0)
+		if((strncmp(china, lang, strlen(china)) == 0) ||
+			(strncmp(hongkong, lang, strlen(hongkong)) == 0))
 		{
 			ret = TRUE;
 		}

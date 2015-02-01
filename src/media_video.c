@@ -240,38 +240,6 @@ int video_meta_get_media_id(video_meta_h video, char **media_id)
 	return ret;
 }
 
-int video_meta_get_title(video_meta_h video, char **title)
-{
-	int ret = MEDIA_CONTENT_ERROR_NONE;
-	video_meta_s *_video = (video_meta_s*)video;
-	if(_video)
-	{
-		if(STRING_VALID(_video->title))
-		{
-			char *new_string = strdup(_video->title);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
-			*title = new_string;
-		}
-		else
-		{
-			*title = NULL;
-		}
-		ret = MEDIA_CONTENT_ERROR_NONE;
-
-	}
-	else
-	{
-		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
-		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
-	}
-
-	return ret;
-}
-
 int video_meta_get_album(video_meta_h video, char **album)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;

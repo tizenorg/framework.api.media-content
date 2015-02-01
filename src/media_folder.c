@@ -133,9 +133,6 @@ int media_folder_clone(media_folder_h *dst, media_folder_h src)
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	media_folder_s *_src = (media_folder_s*)src;
 
-	/*this is temporary log to fix bug*/
-	media_content_error("");
-
 	if(_src != NULL)
 	{
 		media_folder_s *_dst = (media_folder_s*)calloc(1, sizeof(media_folder_s));
@@ -399,6 +396,8 @@ int media_folder_update_to_db(media_folder_h folder)
 
 		sqlite3_free(set_sql);
 		sqlite3_free(sql);
+		if (ret != MEDIA_CONTENT_ERROR_NONE)
+			return ret;
 
 		/* Do folder rename operation using libmedia-service */
 		ret = media_svc_rename_folder(_content_get_db_handle(), g_src_path, _folder->path);
@@ -434,6 +433,7 @@ int media_folder_set_name(media_folder_h folder, const char *name)
 
 			SAFE_FREE(_folder->path);
 			SAFE_FREE(_folder->name);
+			SAFE_FREE(folder_path);
 			_folder->path = strdup(new_folder_path);
 
 			if(_folder->path == NULL)

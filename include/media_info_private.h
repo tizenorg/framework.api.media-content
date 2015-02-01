@@ -40,6 +40,7 @@ extern "C" {
 #undef LOG_TAG
 #endif
 
+
 /**
  * @addtogroup CAPI_CONTENT_MEDIA_INFO_MODULE
 * @{
@@ -51,6 +52,7 @@ extern "C" {
 *        Defenitions of media DB fields and tables, operations with media data relating to DB and handling with media filter attributes.
 */
 
+
 #define LOG_TAG "CAPI_CONTENT_MEDIA_CONTENT"
 
 #define SAFE_STRLCPY(dst, src, n)	((g_strlcpy(dst, src, n) < n) ? TRUE : FALSE)
@@ -59,7 +61,7 @@ extern "C" {
 #define STRING_VALID(str)		((str != NULL && strlen(str) > 0) ? TRUE : FALSE)
 #define SQLITE3_FINALIZE(x)	{if(x != NULL) {sqlite3_finalize(x);}}
 
-#define MEDIA_CONTENT_THUMB_DEFAULT_PATH 	MEDIA_DATA_PATH"/.thumb/thumb_default.png"
+#define MEDIA_CONTENT_THUMB_DEFAULT_PATH 	MEDIA_THUMB_ROOT_PATH"/.thumb/thumb_default.png"
 #define MEDIA_CONTENT_INSERT_FILES_PATH		MEDIA_DATA_PATH"/"
 
 #define MAX_QUERY_SIZE 4096
@@ -97,6 +99,16 @@ typedef enum {
 	MEDIA_GROUP_BOOKMARK,
 	MEDIA_GROUP_TAG_BY_MEDIA_ID,
 	MEDIA_GROUP_BOOKMARK_BY_MEDIA_ID,
+
+#ifdef COMMERCIAL_FEATURE
+	MEDIA_GROUP_MEDIA_WITH_MODE,
+	MEDIA_GROUP_FOLDER_WITH_MODE,
+	MEDIA_GROUP_CATEGORY_MAIN_CATEGORY,
+	MEDIA_GROUP_CATEGORY_SUB_CATEGORY,
+	MEDIA_GROUP_EVENT,
+	MEDIA_GROUP_GALLERY_SEARCH,
+#endif
+
 } group_list_e;
 
 typedef enum {
@@ -121,7 +133,7 @@ typedef struct
 	char *path;
 	char *name;
 	time_t modified_time;
-	media_content_storage_e storage_type;
+	int storage_type;
 }media_folder_s;
 
 typedef struct
@@ -201,6 +213,7 @@ typedef struct
 	char *copyright;
 	char *track_num;
 	int bitrate;
+	int bitpersample;
 	int samplerate;
 	int channel;
 	int duration;
@@ -239,6 +252,9 @@ typedef struct
 	int is_drm;
 	int storage_type;
 	int sync_status;
+#ifdef COMMERCIAL_FEATURE
+	int mode;
+#endif
 	image_meta_s *image_meta;
 	video_meta_s *video_meta;
 	audio_meta_s *audio_meta;
@@ -341,6 +357,7 @@ typedef struct _media_content_cb_data {
 #define DB_FIELD_MEDIA_TRACK_NUM			"track_num"
 #define DB_FIELD_MEDIA_DESCRIPTION			"description"
 #define DB_FIELD_MEDIA_BITRATE				"bitrate"
+#define DB_FIELD_MEDIA_BITPERSAMPLE		"bitpersample"
 #define DB_FIELD_MEDIA_SAMPLERATE			"samplerate"
 #define DB_FIELD_MEDIA_CHANNEL			"channel"
 #define DB_FIELD_MEDIA_DURATION			"duration"
@@ -385,6 +402,10 @@ typedef struct _media_content_cb_data {
 #define DB_FIELD_MEDIA_AGE_RATING_PINYIN			"age_rating_pinyin"
 #define DB_FIELD_MEDIA_KEYWORD_PINYIN				"keyword_pinyin"
 
+#ifdef COMMERCIAL_FEATURE
+#define DB_FIELD_MEDIA_TRACK_NUM_INT		"CAST (track_num AS INTEGER)"
+#endif
+
 /* DB field for folder */
 #define DB_FIELD_FOLDER_ID				"folder_uuid"
 #define DB_FIELD_FOLDER_PATH			"path"
@@ -392,6 +413,7 @@ typedef struct _media_content_cb_data {
 #define DB_FIELD_FOLDER_MODIFIED_TIME	"modified_time"
 #define DB_FIELD_FOLDER_STORAGE_TYPE	"storage_type"
 #define DB_FIELD_FOLDER_NAME_PINYIN	"name_pinyin"
+
 
 /* DB field for playlist */
 #define DB_FIELD_PLAYLIST_ID					"playlist_id"
@@ -436,7 +458,7 @@ typedef struct _media_content_cb_data {
 
 #define SELECT_FOLDER_LIST 			"SELECT DISTINCT f.folder_uuid, f.path, f.name, f.storage_type, f.modified_time FROM "FOLDER_MEDIA_JOIN
 #define SELECT_TAG_LIST				"SELECT DISTINCT tag_id, name FROM "DB_VIEW_TAG" WHERE 1 "
-#define SELECT_PLAYLIST_LIST			"SELECT DISTINCT playlist_id, name, thumbnail_path FROM "DB_VIEW_PLAYLIST" WHERE 1 "
+#define SELECT_PLAYLIST_LIST			"SELECT DISTINCT playlist_id, name, p_thumbnail_path FROM "DB_VIEW_PLAYLIST" WHERE 1 "
 
 /* Get Group Count */
 #define SELECT_ALBUM_COUNT		"SELECT COUNT(DISTINCT a.album_id) FROM "ALBUM_MEDIA_JOIN
@@ -472,12 +494,17 @@ typedef struct _media_content_cb_data {
 #define SELECT_TAG_COUNT_BY_MEDIA_ID			"SELECT COUNT(*) FROM "DB_VIEW_TAG" WHERE media_uuid = '%s'"
 #define SELECT_TAG_LIST_BY_MEDIA_ID				"SELECT tag_id, name FROM "DB_VIEW_TAG" WHERE media_uuid = '%s'"
 
+/* Get Media list of Group */
+#define MEDIA_INFO_ITEM "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, thumbnail_path, description, \
+							rating, favourite, author, provider, content_name, category, location_tag, age_rating, keyword, is_drm, storage_type, longitude, latitude, altitude, width, height, datetaken, orientation, title, album, artist, album_artist, genre, composer, year, recorded_date, copyright, track_num, bitrate, bitpersample, duration, played_count, last_played_time, last_played_position, samplerate, channel, burst_id, timeline, weather, sync_status"
+
 /* Playlist Info */
 #define INSERT_PLAYLIST_TO_PLAYLIST						"INSERT INTO "DB_TABLE_PLAYLIST" (name) VALUES (%Q)"
 #define UPDATE_PLAYLIST_NAME_FROM_PLAYLIST			"UPDATE "DB_TABLE_PLAYLIST" SET name='%q' WHERE playlist_id=%d"
 #define UPDATE_PLAYLIST_THUMBNAIL_FROM_PLAYLIST		"UPDATE "DB_TABLE_PLAYLIST" SET thumbnail_path='%q' WHERE playlist_id=%d"
 #define SELECT_PLAYLIST_ID_FROM_PLAYLIST				"SELECT playlist_id FROM "DB_TABLE_PLAYLIST" WHERE name='%q'"
 #define SELECT_PLAYLIST_ITEM_ID_FROM_PLAYLIST_VIEW	"SELECT pm_id, media_uuid FROM "DB_VIEW_PLAYLIST" WHERE (playlist_id=%d and media_count>0) "
+#define SELECT_PLAYLIST_ITEM_ALL_FROM_PLAYLIST_VIEW	"SELECT "MEDIA_INFO_ITEM" , pm_id FROM "DB_VIEW_PLAYLIST" WHERE (playlist_id=%d and media_count>0) "
 #define SELECT_PLAY_ORDER_FROM_PLAYLIST_VIEW			"SELECT play_order FROM "DB_VIEW_PLAYLIST" WHERE playlist_id=%d and pm_id=%d"
 #define SELECT_MAX_PLAY_ORDER_FROM_PLAYLIST_VIEW	"SELECT MAX(play_order) FROM "DB_VIEW_PLAYLIST" WHERE playlist_id=%d"
 #define REMOVE_PLAYLIST_ITEM_FROM_PLAYLIST_MAP		"DELETE FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d AND _id=%d"
@@ -491,10 +518,6 @@ typedef struct _media_content_cb_data {
 /* Update Meta*/
 #define UPDATE_AV_META_FROM_MEDIA	"UPDATE "DB_TABLE_MEDIA" SET played_count=%d, last_played_time=%d, last_played_position=%d WHERE media_uuid='%q'"
 #define UPDATE_IMAGE_META_FROM_MEDIA	"UPDATE "DB_TABLE_MEDIA" SET orientation=%d, weather=%Q WHERE media_uuid='%q'"
-
-/* Get Media list of Group */
-#define MEDIA_INFO_ITEM "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, thumbnail_path, description, \
-							rating, favourite, author, provider, content_name, category, location_tag, age_rating, keyword, is_drm, storage_type, longitude, latitude, altitude, width, height, datetaken, orientation, title, album, artist, album_artist, genre, composer, year, recorded_date, copyright, track_num, bitrate, duration, played_count, last_played_time, last_played_position, samplerate, channel, burst_id, timeline, weather, sync_status"
 
 #define SELECT_MEDIA_ITEM 					"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1"
 #define SELECT_MEDIA_FROM_MEDIA			"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND media_uuid='%s'"
@@ -512,6 +535,97 @@ typedef struct _media_content_cb_data {
 #define DELETE_PLAYLIST_FROM_PLAYLIST		"DELETE FROM "DB_TABLE_PLAYLIST" WHERE playlist_id=%d"
 #define DELETE_TAG_FROM_TAG				"DELETE FROM "DB_TABLE_TAG" WHERE tag_id=%d"
 #define DELETE_BOOKMARK_FROM_BOOKMARK	"DELETE FROM "DB_TABLE_BOOKMARK" WHERE bookmark_id=%d"
+
+#ifdef COMMERCIAL_FEATURE
+#define MEDIA_MODE_JOIN						"media as m LEFT OUTER JOIN media_mode as mm ON m.media_uuid=mm.media_uuid WHERE validity=1 "
+#define MEDIA_INFO_ITEM_WITH_MODE			"m."MEDIA_INFO_ITEM
+#define SELECT_MEDIA_ITEM_WITH_MODE			"SELECT "MEDIA_INFO_ITEM_WITH_MODE", mm.mode FROM "MEDIA_MODE_JOIN
+#define SELECT_MEDIA_FROM_FOLDER_WITH_MODE	"SELECT "MEDIA_INFO_ITEM_WITH_MODE", mm.mode FROM "MEDIA_MODE_JOIN"AND folder_uuid='%s'"
+#define SELECT_MEDIA_COUNT_FROM_MODE		"SELECT COUNT(*) FROM "MEDIA_MODE_JOIN
+#define SELECT_MEDIA_COUNT_FROM_MODE_BY_ID	"SELECT COUNT(*) FROM media_mode WHERE media_uuid=(SELECT media_uuid FROM "DB_TABLE_MEDIA" WHERE path='%q')"
+#define INSERT_MEDIA_MODE						"INSERT INTO media_mode (media_uuid, mode) SELECT media_uuid, %d FROM media WHERE path='%q'"
+#define UPDATE_MEDIA_MODE					"UPDATE media_mode SET mode=%d WHERE media_uuid=(SELECT media_uuid FROM "DB_TABLE_MEDIA" WHERE path='%q')"
+
+
+int _media_info_get_origin_folder_path(const char *folder_id, char **path);
+int _media_info_get_origin_item_path(const char *media_id, char **path);
+
+/* Definitions for category */
+typedef struct
+{
+	char *category_name; /* category_name can be either main_category or sub_category, depends on API */
+}media_category_s;
+
+typedef enum
+{
+	MEDIA_CATEGORY_TYPE_MAIN_CATEGORY,
+	MEDIA_CATEGORY_TYPE_SUB_CATEGORY,
+} media_category_type_e;
+
+#define DB_TABLE_CATEGORY "category"
+#define DB_VIEW_CATEGORY "category_view"
+#define DB_VIEW_SUB_CATEGORY "sub_category_view"
+#define DB_FIELD_MAIN_CATEGORY "main_category"
+#define DB_FIELD_SUB_CATEGORY "sub_category"
+
+#define SELECT_MAIN_CATEGORY_LIST				"SELECT DISTINCT main_category FROM "DB_VIEW_CATEGORY" WHERE 1 "
+#define SELECT_MAIN_CATEGORY_LIST_BY_MEDIA_ID	"SELECT main_category FROM "DB_VIEW_CATEGORY" WHERE media_uuid = '%s'"
+#define SELECT_MEDIA_COUNT_FROM_MAIN_CATEGORY	"SELECT count(*) FROM "DB_VIEW_CATEGORY" WHERE main_category = '%s'"
+#define SELECT_MEDIA_ITEM_FROM_MAIN_CATEGORY	"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE media_uuid IN (SELECT media_uuid FROM "DB_VIEW_CATEGORY" WHERE main_category='%s') AND validity=1"
+#define SELECT_SUB_CATEGORY_LIST				"SELECT DISTINCT sub_category FROM "DB_VIEW_SUB_CATEGORY" WHERE 1 "
+#define SELECT_MEDIA_COUNT_FROM_SUB_CATEGORY	"SELECT count(*) FROM "DB_VIEW_SUB_CATEGORY" WHERE sub_category = '%s'"
+#define SELECT_MEDIA_ITEM_FROM_SUB_CATEGORY		"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE media_uuid IN (SELECT media_uuid FROM "DB_VIEW_SUB_CATEGORY" WHERE sub_category='%s') AND validity=1"
+#define DELETE_MAIN_CATEGORY_FROM_CATEGORY 		"DELETE FROM "DB_TABLE_CATEGORY" WHERE media_uuid='%q' AND main_category='%q'"
+#define INSERT_CATEGORY_TO_CATEGORY				"INSERT INTO "DB_TABLE_CATEGORY" (media_uuid, main_category, main_score, sub_category, sub_score) VALUES ('%q', '%q', %f, '%q', %f)"
+
+/* Definitions for event */
+typedef struct
+{
+	int event_id;	// event id
+	char *name;		// event name
+}media_event_s;
+
+typedef struct
+{
+	char *media_id;		// media_uuid
+	int function;			// Add, remove, modify
+	char *event_name;	// event_name
+	int event_member_id;	// event unique id of media. Same content which has same media_id can be added to event
+}media_event_item_s;
+
+typedef enum {
+	MEDIA_EVENT_ADD,
+	MEDIA_EVENT_REMOVE,
+	MEDIA_EVENT_UPDATE_EVENT_NAME,
+} event_function_e;
+
+#define DB_TABLE_EVENT		"event"
+#define DB_TABLE_EVENT_MAP	"event_map"
+#define DB_VIEW_EVENT		"event_view"
+
+#define DB_FIELD_EVENT_NAME		"name"
+#define DB_FIELD_EVENT_MEDIA_COUNT	"media_count"
+
+#define SELECT_EVENT_COUNT			"SELECT COUNT(DISTINCT event_id) FROM "DB_VIEW_EVENT" WHERE 1 "
+#define SELECT_EVENT_LIST			"SELECT DISTINCT event_id, name FROM "DB_VIEW_EVENT" WHERE 1 "
+#define SELECT_MEDIA_COUNT_FROM_EVENT		"SELECT COUNT(*) FROM "DB_VIEW_EVENT" WHERE (event_id=%d and media_count>0) "
+#define SELECT_EVENT_FROM_EVENT			"SELECT * FROM "DB_TABLE_EVENT" WHERE event_id=%d"
+#define REMOVE_EVENT_ITEM_FROM_EVENT_MAP	"DELETE FROM "DB_TABLE_EVENT_MAP" WHERE event_id=%d AND _id=%d"
+#define UPDATE_EVENT_NAME_FROM_EVENT		"UPDATE "DB_TABLE_EVENT" SET name='%q' WHERE event_id=%d"
+#define INSERT_EVENT_TO_EVENT			"INSERT INTO "DB_TABLE_EVENT" (name) VALUES (%Q)"
+#define SELECT_EVENT_ID_FROM_EVENT	"SELECT event_id FROM "DB_TABLE_EVENT" WHERE name='%q'"
+#define DELETE_EVENT_FROM_EVENT		"DELETE FROM "DB_TABLE_EVENT" WHERE event_id=%d"
+#define SELECT_EVENT_ITEM_ID_FROM_EVENT_VIEW	"SELECT em_id, media_uuid FROM "DB_VIEW_EVENT" WHERE (event_id=%d and media_count>0) "
+
+/* Definitions for gallery_search_view */
+#define DB_VIEW_GALLERY_SEARCH "gallery_search_view"
+#define DB_FIELD_FACE_UUID "uuid"
+#define DB_FIELD_FACE_CONTACT_ID "contact_id"
+#define DB_FIELD_FACE_CONTACT_NAME "contact_name"
+
+#define SELECT_MEDIA_ITEM_FROM_GALLERY_SEARCH_VIEW "SELECT DISTINCT "MEDIA_INFO_ITEM" FROM "DB_VIEW_GALLERY_SEARCH" WHERE 1 "
+
+#endif
 
 /**
  *@internal
@@ -628,7 +742,19 @@ int _media_db_get_media_group_item_count(const char *group_name, filter_h filter
  */
 int _media_db_get_media_group_item(const char *group_name, filter_h filter, media_group_e group, media_info_cb callback, void *user_data);
 
+#ifdef COMMERCIAL_FEATURE
 /**
+ *@internal
+ */
+int _media_db_get_category(const char *media_id, media_category_type_e type, filter_h filter, void *callback, void *user_data);
+
+int _media_db_get_event(filter_h filter, void *callback, void *user_data);
+
+int _media_db_get_event_item(int event_id, filter_h filter, void *callback, void *user_data);
+#endif
+
+/**
+ * @internal
  * @brief Creates a media filter attribute handle.
  * @details This function creates a media filter attribute handle. The handle can be
  * used to convert to attributes of database from attributes of user.
@@ -638,12 +764,14 @@ int _media_db_get_media_group_item(const char *group_name, filter_h filter, medi
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  * @see media_filter_attribute_destory()
  *
  */
 int _media_filter_attribute_create(attribute_h *attr);
 
 /**
+ * @internal
  * @brief Add the attributes to the handle.
  * @details This function add the attribute to handle.
  * @param[in] filter The handle to media filter attribute
@@ -653,12 +781,14 @@ int _media_filter_attribute_create(attribute_h *attr);
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  * @see media_filter_attribute_remove()
  *
  */
 int _media_filter_attribute_add(attribute_h atrr, char *user_attr, char *platform_attr);
 
 /**
+ * @internal
  * @brief Destroys a media filter attribute handle.
  * @details The function frees all resources related to the media filter attribute handle. The filter attribute
  * handle no longer can be used to perform any operation. A new handle
@@ -668,12 +798,14 @@ int _media_filter_attribute_add(attribute_h atrr, char *user_attr, char *platfor
  * @return 0 on success, otherwise a negative error value.
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  * @see media_filter_create()
  *
  */
 int _media_filter_attribute_destory(attribute_h attr);
 
 /**
+ * @internal
  * @brief Replace to platform attributes from user attributes.
  * @details This function replace to platform attributes from user attributes to generate the WHERE clause
  * @param[in] filter The handle to media filter attribute
@@ -683,6 +815,7 @@ int _media_filter_attribute_destory(attribute_h attr);
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  * @see media_filter_attribute_create()
  * @see media_filter_attribute_destory()
  *
@@ -691,6 +824,7 @@ int _media_filter_attribute_generate(attribute_h attr, char *condition, media_co
 
 
 /**
+ * @internal
  * @brief Replace to platform attributes from user attributes.
  * @details This function replace to platform attributes from user attributes to generate the WHERE clause
  * @param[in] filter The handle to media filter attribute
@@ -700,6 +834,7 @@ int _media_filter_attribute_generate(attribute_h attr, char *condition, media_co
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_CONTENT_ERROR_DB_FAILED Filed DB
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  * @see media_filter_attribute_create()
  * @see media_filter_attribute_destory()
  *

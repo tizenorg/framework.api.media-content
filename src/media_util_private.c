@@ -17,10 +17,31 @@
 #include <dirent.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <sys/types.h>
+#include <fcntl.h>
 #include <media_util_private.h>
 #include <media_info_private.h>
 #include <media_content_type.h>
 
+int _media_util_check_file(const char *path)
+{
+	int exist;
+
+	/* check the file exits actually */
+	exist = open(path, O_RDONLY);
+	if(exist < 0) {
+		media_content_error("error [%s, %s]", path, strerror(errno));
+		if (errno == EACCES || errno == EPERM) {
+			return MEDIA_CONTENT_ERROR_PERMISSION_DENIED;
+		} else {
+			return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
+		}
+	}
+
+	close(exist);
+
+	return MEDIA_CONTENT_ERROR_NONE;
+}
 
 int _media_util_check_ignore_dir(const char *dir_path, bool *ignore)
 {
