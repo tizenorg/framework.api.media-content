@@ -23,11 +23,16 @@
 extern "C" {
 #endif /* __cplusplus */
 
+#include <stdbool.h>
+
 
 /**
  *@internal
  */
-int _media_util_get_store_type_by_path(const char *path, int *storage_type);
+
+int _media_util_check_file(const char *path);
+
+int _media_util_check_ignore_dir(const char *dir_path, bool *ignore);
 
 
 #ifdef __cplusplus

@@ -19,6 +19,8 @@
 #define __TIZEN_MEDIA_INFO_PRIVATE_H__
 
 
+#include <unistd.h>
+#include <asm/unistd.h>
 #include <string.h>
 #include <sqlite3.h>
 #include <stdlib.h>
@@ -27,6 +29,9 @@
 #include <media-svc.h>
 #include <media_content_type.h>
 #include <dlog.h>
+#include <media-util.h>
+#include <errno.h>
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -36,7 +41,20 @@ extern "C" {
 #undef LOG_TAG
 #endif
 
-#define LOG_TAG "TIZEN_N_MEDIACONTENT"
+
+/**
+ * @addtogroup CAPI_CONTENT_MEDIA_INFO_MODULE
+* @{
+*
+* @file media_info_private.h
+* @brief This file contains the media info API and related structure and enumeration. \n
+*        Description of the audio, video,image content involves: album, artist, album_artist, author, genre and description tags. \n
+*        Parameters of the recording are also supported, as: format, bitrate, duration, size etc. \n
+*        Defenitions of media DB fields and tables, operations with media data relating to DB and handling with media filter attributes.
+*/
+
+
+#define LOG_TAG "CAPI_CONTENT_MEDIA_CONTENT"
 
 #define SAFE_STRLCPY(dst, src, n)	((g_strlcpy(dst, src, n) < n) ? TRUE : FALSE)
 #define SAFE_STRLCAT(dst, src, n)	g_strlcat(dst, src, n);
@@ -44,29 +62,20 @@ extern "C" {
 #define STRING_VALID(str)		((str != NULL && strlen(str) > 0) ? TRUE : FALSE)
 #define SQLITE3_FINALIZE(x)	{if(x != NULL) {sqlite3_finalize(x);}}
 
-#define MEDIA_CONTENT_PATH_PHONE 	"/opt/media" 	/**< File path prefix of files stored in phone */
-#define MEDIA_CONTENT_PATH_MMC 		"/mnt/mmc"		/**< File path prefix of files stored in mmc card */
+#define MEDIA_CONTENT_THUMB_DEFAULT_PATH 	MEDIA_THUMB_ROOT_PATH"/.thumb/thumb_default.png"
+#define MEDIA_CONTENT_INSERT_FILES_PATH		MEDIA_DATA_PATH"/"
 
 #define MAX_QUERY_SIZE 4096
-#define MIN_QUERY_SIZE 256
 #define DEFAULT_QUERY_SIZE 1024
-#define MAX_KEYWORD_SIZE 2048
 #define COLLATE_STR_SIZE 32
 #define MEDIA_CONTENT_UUID_SIZE	36
+#define BATCH_REQUEST_MAX 300
 
 typedef enum {
 	MEDIA_CONTENT_TYPE = 0,
 	MEDIA_THUMBNAIL_TYPE,
 	MEDIA_REGISTER_TYPE
 } media_info_error_type_e;
-
-typedef enum {
-	Table_Media,
-	Table_Folder,
-	Table_Bookmark,
-	Table_Tag,
-	Table_TagMap,
-} media_info_table_e;
 
 typedef enum {
 	MEDIA_TAG_ADD,
@@ -78,6 +87,7 @@ typedef enum {
 	MEDIA_PLAYLIST_ADD,
 	MEDIA_PLAYLIST_REMOVE,
 	MEDIA_PLAYLIST_UPDATE_PLAYLIST_NAME,
+	MEDIA_PLAYLIST_UPDATE_THUMBNAIL_PATH,
 	MEDIA_PLAYLIST_UPDATE_PLAY_ORDER,
 } playlist_function_e;
 
@@ -91,6 +101,11 @@ typedef enum {
 	MEDIA_GROUP_TAG_BY_MEDIA_ID,
 	MEDIA_GROUP_BOOKMARK_BY_MEDIA_ID,
 } group_list_e;
+
+typedef enum {
+	MEDIA_BATCH_INSERT_NORMAL,
+	MEDIA_BATCH_INSERT_BURSTSHOT,
+} media_batch_insert_e;
 
 typedef struct _filter_s
 {
@@ -109,13 +124,14 @@ typedef struct
 	char *path;
 	char *name;
 	time_t modified_time;
-	media_content_storage_e storage_type;
+	int storage_type;
 }media_folder_s;
 
 typedef struct
 {
 	int tag_id;
 	char *name;
+	GList *item_list;
 }media_tag_s;
 
 typedef struct
@@ -138,6 +154,8 @@ typedef struct
 {
 	int playlist_id;	//playlist id
 	char *name;		// playlist name
+	char *thumbnail_path;		//playlist thumbnail path
+	GList *item_list;
 }media_playlist_s;
 
 typedef struct
@@ -146,6 +164,9 @@ typedef struct
 	int width;
 	int height;
 	char *date_taken;
+	char *title;
+	char *burst_id;
+	char *weather;
 	media_content_orientation_e orientation;
 }image_meta_s;
 
@@ -155,6 +176,7 @@ typedef struct
 	char *title;
 	char *album;
 	char *artist;
+	char *album_artist;
 	char *genre;
 	char *composer;
 	char *year;
@@ -176,6 +198,7 @@ typedef struct
 	char *title;
 	char *album;
 	char *artist;
+	char *album_artist;
 	char *genre;
 	char *composer;
 	char *year;
@@ -183,6 +206,7 @@ typedef struct
 	char *copyright;
 	char *track_num;
 	int bitrate;
+	int bitpersample;
 	int samplerate;
 	int channel;
 	int duration;
@@ -201,13 +225,16 @@ typedef struct
 	unsigned long long size;
 	time_t added_time;
 	time_t modified_time;
+	time_t timeline;
 	char *thumbnail_path;
 	char *description;
 	double longitude;
 	double latitude;
 	double altitude;
+	char *weather;
 	int rating;
-	int favourite;
+	time_t favourite;
+	char *title;
 	char *author;
 	char *provider;
 	char *content_name;
@@ -217,30 +244,11 @@ typedef struct
 	char *keyword;
 	int is_drm;
 	int storage_type;
+	int sync_status;
 	image_meta_s *image_meta;
 	video_meta_s *video_meta;
 	audio_meta_s *audio_meta;
 }media_info_s;
-
-typedef struct
-{
-	char *name;
-}media_artist_s;
-
-typedef struct
-{
-	char *name;
-}media_genre_s;
-
-typedef struct
-{
-	char *name;
-}media_composer_s;
-
-typedef struct
-{
-	char *name;
-}media_year_s;
 
 typedef struct
 {
@@ -254,6 +262,7 @@ typedef struct
 	char *media_id;		// media_uuid
 	int function;			// Add, remove, modify
 	char *playlist_name;	// playlist_name
+	char *thumbnail_path;		//playlist thumbnail path
 	int playlist_member_id;	// playlist unique id of media. Same content which has same media_id can be added to Playlist
 	int play_order;		//play_order
 }media_playlist_item_s;
@@ -270,7 +279,27 @@ typedef struct
 	media_thumbnail_completed_cb thumbnail_completed_cb;
 }media_thumbnail_cb_s;
 
+typedef struct
+{
+	media_insert_completed_cb insert_completed_cb;
+	char *insert_list_path;
+	void *user_data;
+} media_insert_cb_s;
+
+typedef struct
+{
+	media_content_db_update_cb update_noti_cb;
+	void *user_data;
+} media_noti_cb_s;
+
 typedef struct attribute_s *attribute_h;
+
+
+typedef struct _media_content_cb_data {
+	media_scan_completed_cb callback;
+	void *user_data;
+} media_content_scan_cb_data;
+
 
 /* DB Table */
 #define DB_TABLE_MEDIA			"media"
@@ -304,10 +333,12 @@ typedef struct attribute_s *attribute_h;
 #define DB_FIELD_MEDIA_SIZE					"size"
 #define DB_FIELD_MEDIA_ADDED_TIME			"added_time"
 #define DB_FIELD_MEDIA_MODIFIED_TIME		"modified_time"
+#define DB_FIELD_MEDIA_TIMELINE				"timeline"
 #define DB_FIELD_MEDIA_THUMBNAIL_PATH	"thumbnail_path"
 #define DB_FIELD_MEDIA_TITLE				"title"
 #define DB_FIELD_MEDIA_ALBUM				"album"
 #define DB_FIELD_MEDIA_ARTIST				"artist"
+#define DB_FIELD_MEDIA_ALBUM_ARTIST			"album_artist"
 #define DB_FIELD_MEDIA_GENRE				"genre"
 #define DB_FIELD_MEDIA_COMPOSER			"composer"
 #define DB_FIELD_MEDIA_YEAR				"year"
@@ -316,6 +347,7 @@ typedef struct attribute_s *attribute_h;
 #define DB_FIELD_MEDIA_TRACK_NUM			"track_num"
 #define DB_FIELD_MEDIA_DESCRIPTION			"description"
 #define DB_FIELD_MEDIA_BITRATE				"bitrate"
+#define DB_FIELD_MEDIA_BITPERSAMPLE		"bitpersample"
 #define DB_FIELD_MEDIA_SAMPLERATE			"samplerate"
 #define DB_FIELD_MEDIA_CHANNEL			"channel"
 #define DB_FIELD_MEDIA_DURATION			"duration"
@@ -326,6 +358,7 @@ typedef struct attribute_s *attribute_h;
 #define DB_FIELD_MEDIA_HEIGHT				"height"
 #define DB_FIELD_MEDIA_DATETAKEN			"datetaken"
 #define DB_FIELD_MEDIA_ORIENTATION		"orientation"
+#define DB_FIELD_MEDIA_BURST_ID			"burst_id"
 #define DB_FIELD_MEDIA_PLAYED_COUNT		"played_count"
 #define DB_FIELD_MEDIA_LAST_PLAYED_TIME		"last_played_time"
 #define DB_FIELD_MEDIA_LAST_PLAYED_POSITION	"last_played_position"
@@ -338,8 +371,26 @@ typedef struct attribute_s *attribute_h;
 #define DB_FIELD_MEDIA_LOCATION_TAG		"location_tag"
 #define DB_FIELD_MEDIA_AGE_RATING			"age_rating"
 #define DB_FIELD_MEDIA_KEYWORD			"keyword"
+#define DB_FIELD_MEDIA_WEATHER			"weather"
 #define DB_FIELD_MEDIA_IS_DRM				"is_drm"
 #define DB_FIELD_MEDIA_STORAGE_TYPE		"storage_type"
+
+#define DB_FIELD_MEDIA_FILE_NAME_PINYIN			"file_name_pinyin"
+#define DB_FIELD_MEDIA_TITLE_PINYIN					"title_pinyin"
+#define DB_FIELD_MEDIA_ALBUM_PINYIN				"album_pinyin"
+#define DB_FIELD_MEDIA_ARTIST_PINYIN				"artist_pinyin"
+#define DB_FIELD_MEDIA_ALBUM_ARTIST_PINYIN		"album_artist_pinyin"
+#define DB_FIELD_MEDIA_GENRE_PINYIN				"genre_pinyin"
+#define DB_FIELD_MEDIA_COMPOSER_PINYIN			"composer_pinyin"
+#define DB_FIELD_MEDIA_COPYRIGHT_PINYIN			"copyright_pinyin"
+#define DB_FIELD_MEDIA_DESCRIPTION_PINYIN			"description_pinyin"
+#define DB_FIELD_MEDIA_AUTHOR_PINYIN				"author_pinyin"
+#define DB_FIELD_MEDIA_PROVIDER_PINYIN			"provider_pinyin"
+#define DB_FIELD_MEDIA_CONTENT_NAME_PINYIN		"content_name_pinyin"
+#define DB_FIELD_MEDIA_CATEGORY_PINYIN			"category_pinyin"
+#define DB_FIELD_MEDIA_LOCATION_TAG_PINYIN		"location_tag_pinyin"
+#define DB_FIELD_MEDIA_AGE_RATING_PINYIN			"age_rating_pinyin"
+#define DB_FIELD_MEDIA_KEYWORD_PINYIN				"keyword_pinyin"
 
 /* DB field for folder */
 #define DB_FIELD_FOLDER_ID				"folder_uuid"
@@ -347,6 +398,8 @@ typedef struct attribute_s *attribute_h;
 #define DB_FIELD_FOLDER_NAME			"name"
 #define DB_FIELD_FOLDER_MODIFIED_TIME	"modified_time"
 #define DB_FIELD_FOLDER_STORAGE_TYPE	"storage_type"
+#define DB_FIELD_FOLDER_NAME_PINYIN	"name_pinyin"
+
 
 /* DB field for playlist */
 #define DB_FIELD_PLAYLIST_ID					"playlist_id"
@@ -375,19 +428,11 @@ typedef struct attribute_s *attribute_h;
 #define QUERY_KEYWORD_LIMIT "limit"
 #define QUERY_KEYWORD_DESC "DESC"
 #define QUERY_KEYWORD_SPACE " "
+#define QUERY_KEYWORD_OPEN_BRACKET "("
 #define QUERY_KEYWORD_BRACKET ")"
-#define UPDATE_SQL "UPDATE %s SET %s WHERE %s"
 
 /* DB TABLE JOIN */
-#define SELECT_EMPTY_PLAYLIST		"SELECT playlist_id, name FROM "DB_TABLE_PLAYLIST" WHERE playlist_id NOT IN (select playlist_id from "DB_TABLE_PLAYLIST_MAP")"
-#define SELECT_EMPTY_TAG			"SELECT tag_id, name FROM "DB_TABLE_TAG" WHERE tag_id NOT IN (SELECT tag_id FROM "DB_TABLE_TAG_MAP")"
 #define FOLDER_MEDIA_JOIN					"("DB_TABLE_FOLDER" AS f INNER JOIN "DB_TABLE_MEDIA" AS m ON f.folder_uuid=m.folder_uuid) WHERE m.validity=1"
-#define PLAYLISTMAP_MEDIA_JOIN				"("DB_TABLE_PLAYLIST_MAP" AS pm INNER JOIN "DB_TABLE_MEDIA" AS m \
-											ON (pm.media_uuid = m.media_uuid)) WHERE m.validity=1"
-#define SELECT_PLAYLIST_FROM_PLAYLIST_PLAYLISTMAP_MEDIA_JOIN		"SELECT DISTINCT p.playlist_id, p.name FROM "DB_TABLE_PLAYLIST" AS p INNER JOIN "DB_TABLE_PLAYLIST_MAP" AS pm INNER JOIN "DB_TABLE_MEDIA" AS m \
-											ON (p.playlist_id=pm.playlist_id AND pm.media_uuid = m.media_uuid) WHERE m.validity=1"
-#define SELECT_TAG_FROM_TAG_TAGMAP_MEDIA_JOIN					"SELECT DISTINCT t.tag_id, t.name FROM "DB_TABLE_TAG" AS t INNER JOIN "DB_TABLE_MEDIA" AS m INNER JOIN "DB_TABLE_TAG_MAP" AS tm \
-											ON (tm.media_uuid = m.media_uuid and tm.tag_id=t.tag_id) WHERE m.validity=1"
 #define BOOKMARK_MEDIA_JOIN				"("DB_TABLE_BOOKMARK" AS b INNER JOIN "DB_TABLE_MEDIA" AS m \
 											ON (b.media_uuid = m.media_uuid)) WHERE m.validity=1"
 #define ALBUM_MEDIA_JOIN					"("DB_TABLE_ALBUM" AS a INNER JOIN "DB_TABLE_MEDIA" AS m \
@@ -395,28 +440,15 @@ typedef struct attribute_s *attribute_h;
 
 /* Get Group List */
 #define SELECT_ALBUM_LIST			"SELECT DISTINCT a.album_id, a.name, a.artist, a.album_art FROM "ALBUM_MEDIA_JOIN
-#define SELECT_ARTIST_LIST			"SELECT DISTINCT artist FROM "DB_TABLE_MEDIA" WHERE validity=1"
-#define SELECT_GENRE_LIST			"SELECT DISTINCT genre FROM "DB_TABLE_MEDIA" WHERE validity=1"
-#define SELECT_COMPOSER_LIST		"SELECT DISTINCT composer FROM "DB_TABLE_MEDIA" WHERE validity=1 "
-#define SELECT_YEAR_LIST				"SELECT DISTINCT year FROM "DB_TABLE_MEDIA" WHERE validity=1 "
 #define SELECT_MEDIA_GROUP_LIST	"SELECT DISTINCT %s FROM "DB_TABLE_MEDIA" WHERE validity=1 "
 
 #define SELECT_FOLDER_LIST 			"SELECT DISTINCT f.folder_uuid, f.path, f.name, f.storage_type, f.modified_time FROM "FOLDER_MEDIA_JOIN
-//#define SELECT_TAG_LIST				SELECT_EMPTY_TAG" UNION "SELECT_TAG_FROM_TAG_TAGMAP_MEDIA_JOIN
-//#define SELECT_PLAYLIST_LIST			SELECT_EMPTY_PLAYLIST" UNION "SELECT_PLAYLIST_FROM_PLAYLIST_PLAYLISTMAP_MEDIA_JOIN
 #define SELECT_TAG_LIST				"SELECT DISTINCT tag_id, name FROM "DB_VIEW_TAG" WHERE 1 "
-#define SELECT_PLAYLIST_LIST		"SELECT DISTINCT playlist_id, name FROM "DB_VIEW_PLAYLIST" WHERE 1 "
-#define SELECT_BOOKMARK_LIST		"SELECT DISTINCT b.bookmark_id, b.media_uuid, b.marked_time, b.thumbnail_path FROM "BOOKMARK_MEDIA_JOIN
+#define SELECT_PLAYLIST_LIST			"SELECT DISTINCT playlist_id, name, p_thumbnail_path FROM "DB_VIEW_PLAYLIST" WHERE 1 "
 
 /* Get Group Count */
 #define SELECT_ALBUM_COUNT		"SELECT COUNT(DISTINCT a.album_id) FROM "ALBUM_MEDIA_JOIN
-#define SELECT_ARTIST_COUNT		"SELECT COUNT(DISTINCT artist) FROM "DB_TABLE_MEDIA" WHERE validity=1"
-#define SELECT_GENRE_COUNT			"SELECT COUNT(DISTINCT genre) FROM "DB_TABLE_MEDIA" WHERE validity=1"
-#define SELECT_COMPOSER_COUNT	"SELECT COUNT(DISTINCT composer) FROM "DB_TABLE_MEDIA" WHERE validity=1"
-#define SELECT_YEAR_COUNT			"SELECT COUNT(DISTINCT year) FROM "DB_TABLE_MEDIA" WHERE validity=1"
 #define SELECT_FOLDER_COUNT		"SELECT COUNT(DISTINCT f.folder_uuid) FROM "FOLDER_MEDIA_JOIN
-//#define SELECT_TAG_COUNT			"SELECT COUNT(*) FROM ("SELECT_TAG_LIST
-//#define SELECT_PLAYLIST_COUNT		"SELECT COUNT(*) FROM ("SELECT_PLAYLIST_LIST
 #define SELECT_TAG_COUNT			"SELECT COUNT(DISTINCT tag_id) FROM "DB_VIEW_TAG" WHERE 1 "
 #define SELECT_PLAYLIST_COUNT		"SELECT COUNT(DISTINCT playlist_id) FROM "DB_VIEW_PLAYLIST" WHERE 1 "
 #define SELECT_BOOKMARK_COUNT	"SELECT COUNT(DISTINCT b.bookmark_id) FROM "BOOKMARK_MEDIA_JOIN
@@ -425,18 +457,13 @@ typedef struct attribute_s *attribute_h;
 
 /* Get Media Count of Group */
 #define SELECT_MEDIA_COUNT_FROM_MEDIA			"SELECT COUNT(*) FROM ("SELECT_MEDIA_ITEM		//to apply limit condition. "SELECT COUNT(*) FROM "DB_TABLE_MEDIA" WHERE validity=1"
+#define SELECT_MEDIA_COUNT_FROM_MEDIA_SIMPLE	"SELECT COUNT(*) FROM "DB_TABLE_MEDIA" WHERE validity=1 "
 #define SELECT_MEDIA_COUNT_FROM_ALBUM			"SELECT COUNT(*) FROM "DB_TABLE_MEDIA" WHERE validity=1 AND album_id='%d'"
-#define SELECT_MEDIA_COUNT_FROM_ARTIST			"SELECT COUNT(*) FROM "DB_TABLE_MEDIA" WHERE validity=1 AND artist='%q'"
-#define SELECT_MEDIA_COUNT_FROM_GENRE			"SELECT COUNT(*) FROM "DB_TABLE_MEDIA" WHERE validity=1 AND genre='%q'"
-#define SELECT_MEDIA_COUNT_FROM_COMPOSER		"SELECT COUNT(*) FROM "DB_TABLE_MEDIA" WHERE validity=1 AND composer='%q'"
-#define SELECT_MEDIA_COUNT_FROM_YEAR				"SELECT COUNT(*) FROM "DB_TABLE_MEDIA" WHERE validity=1 AND year='%q'"
 #define SELECT_MEDIA_COUNT_FROM_GROUP			"SELECT COUNT(*) FROM ("SELECT_MEDIA_FROM_GROUP		//to apply limit condition.
 #define SELECT_MEDIA_COUNT_FROM_GROUP_NULL		"SELECT COUNT(*) FROM ("SELECT_MEDIA_FROM_GROUP_NULL	//to apply limit condition.
 #define SELECT_MEDIA_COUNT_FROM_FOLDER			"SELECT COUNT(*) FROM "DB_TABLE_MEDIA" WHERE validity=1 AND folder_uuid='%q'"
-//#define SELECT_MEDIA_COUNT_FROM_TAG				"SELECT COUNT(*) FROM "DB_TABLE_TAG_MAP" WHERE tag_id=%d AND media_uuid IN 													(SELECT media_uuid FROM "DB_TABLE_MEDIA" WHERE validity=1"
-//#define SELECT_MEDIA_COUNT_FROM_PLAYLIST		"SELECT COUNT(*) FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d AND media_uuid IN  													(SELECT media_uuid FROM "DB_TABLE_MEDIA" WHERE validity=1"
 #define SELECT_MEDIA_COUNT_FROM_TAG				"SELECT COUNT(*) FROM "DB_VIEW_TAG" WHERE (tag_id=%d AND media_count>0) "
-#define SELECT_MEDIA_COUNT_FROM_PLAYLIST		"SELECT COUNT(*) FROM "DB_VIEW_PLAYLIST" WHERE (playlist_id=%d and media_count>0) "
+#define SELECT_MEDIA_COUNT_FROM_PLAYLIST			"SELECT COUNT(*) FROM "DB_VIEW_PLAYLIST" WHERE (playlist_id=%d and media_count>0) "
 
 /* Get Group Info by Group ID*/
 #define SELECT_ALBUM_FROM_ALBUM		"SELECT * FROM "DB_TABLE_ALBUM" WHERE album_id=%d"
@@ -450,69 +477,50 @@ typedef struct attribute_s *attribute_h;
 #define INSERT_TAG_TO_TAG						"INSERT INTO "DB_TABLE_TAG" (name) VALUES (%Q)"
 #define REMOVE_TAG_ITEM_FROM_TAG_MAP		"DELETE FROM "DB_TABLE_TAG_MAP" WHERE tag_id=%d AND media_uuid='%q'"
 #define UPDATE_TAG_NAME_FROM_TAG			"UPDATE "DB_TABLE_TAG" SET name='%q' WHERE tag_id=%d"
-//#define SELECT_TAG_COUNT_BY_MEDIA_ID			"SELECT COUNT(*) FROM "DB_TABLE_TAG" WHERE tag_id IN (SELECT tag_id FROM "DB_TABLE_TAG_MAP" WHERE media_uuid = '%q')"
-//#define SELECT_TAG_LIST_BY_MEDIA_ID				"SELECT * FROM "DB_TABLE_TAG" WHERE tag_id IN (SELECT tag_id FROM "DB_TABLE_TAG_MAP" WHERE media_uuid = '%s')"
-#define SELECT_TAG_COUNT_BY_MEDIA_ID			"SELECT COUNT(*) FROM "DB_VIEW_TAG" WHERE media_uuid = '%q'"
+#define SELECT_TAG_COUNT_BY_MEDIA_ID			"SELECT COUNT(*) FROM "DB_VIEW_TAG" WHERE media_uuid = '%s'"
 #define SELECT_TAG_LIST_BY_MEDIA_ID				"SELECT tag_id, name FROM "DB_VIEW_TAG" WHERE media_uuid = '%s'"
+
+/* Get Media list of Group */
+#define MEDIA_INFO_ITEM "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, thumbnail_path, description, \
+							rating, favourite, author, provider, content_name, category, location_tag, age_rating, keyword, is_drm, storage_type, longitude, latitude, altitude, width, height, datetaken, orientation, title, album, artist, album_artist, genre, composer, year, recorded_date, copyright, track_num, bitrate, bitpersample, duration, played_count, last_played_time, last_played_position, samplerate, channel, burst_id, timeline, weather, sync_status"
 
 /* Playlist Info */
 #define INSERT_PLAYLIST_TO_PLAYLIST						"INSERT INTO "DB_TABLE_PLAYLIST" (name) VALUES (%Q)"
 #define UPDATE_PLAYLIST_NAME_FROM_PLAYLIST			"UPDATE "DB_TABLE_PLAYLIST" SET name='%q' WHERE playlist_id=%d"
+#define UPDATE_PLAYLIST_THUMBNAIL_FROM_PLAYLIST		"UPDATE "DB_TABLE_PLAYLIST" SET thumbnail_path='%q' WHERE playlist_id=%d"
 #define SELECT_PLAYLIST_ID_FROM_PLAYLIST				"SELECT playlist_id FROM "DB_TABLE_PLAYLIST" WHERE name='%q'"
-//#define SELECT_PLAYLIST_ITEM_ID_FROM_PLAYLIST_MAP		"SELECT pm._id, pm.media_uuid FROM "PLAYLISTMAP_MEDIA_JOIN" AND pm.playlist_id=%d"
-#define SELECT_PLAYLIST_ITEM_ID_FROM_PLAYLIST_VIEW		"SELECT pm_id, media_uuid FROM "DB_VIEW_PLAYLIST" WHERE playlist_id=%d "
-
-//#define SELECT_PLAY_ORDER_FROM_PLAYLIST_MAP			"SELECT play_order FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d and _id=%d"
+#define SELECT_PLAYLIST_ITEM_ID_FROM_PLAYLIST_VIEW	"SELECT pm_id, media_uuid FROM "DB_VIEW_PLAYLIST" WHERE (playlist_id=%d and media_count>0) "
+#define SELECT_PLAYLIST_ITEM_ALL_FROM_PLAYLIST_VIEW	"SELECT "MEDIA_INFO_ITEM" , pm_id FROM "DB_VIEW_PLAYLIST" WHERE (playlist_id=%d and media_count>0) "
 #define SELECT_PLAY_ORDER_FROM_PLAYLIST_VIEW			"SELECT play_order FROM "DB_VIEW_PLAYLIST" WHERE playlist_id=%d and pm_id=%d"
-//#define SELECT_MAX_PLAY_ORDER_FROM_PLAYLIST_MAP	"SELECT MAX(play_order) FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d"
 #define SELECT_MAX_PLAY_ORDER_FROM_PLAYLIST_VIEW	"SELECT MAX(play_order) FROM "DB_VIEW_PLAYLIST" WHERE playlist_id=%d"
 #define REMOVE_PLAYLIST_ITEM_FROM_PLAYLIST_MAP		"DELETE FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d AND _id=%d"
 #define UPDATE_PLAYLIST_ORDER_FROM_PLAYLIST_MAP		"UPDATE "DB_TABLE_PLAYLIST_MAP" SET play_order=%d WHERE playlist_id=%d AND _id=%d"
 
 /* Bookmark */
-#define INSERT_BOOKMARK_TO_BOOKMARK	"INSERT INTO "DB_TABLE_BOOKMARK" (media_uuid, marked_time, thumbnail_path) VALUES ('%q', '%d', %Q)"
-#define SELECT_BOOKMARK_COUNT_BY_MEDIA_ID	"SELECT COUNT(*) FROM "DB_TABLE_BOOKMARK" WHERE media_uuid='%q'"
-#define SELECT_BOOKMARK_LIST_BY_MEDIA_ID	"SELECT * FROM "DB_TABLE_BOOKMARK" WHERE media_uuid='%q'"
-#define SELECT_BOOKMARK_LIST_BY_MEDIA_ID_USUAL	"SELECT * FROM "DB_TABLE_BOOKMARK" WHERE media_uuid='%s'"
-
-/* Get Meta */
-#define MEDIA_AV_META			"media_uuid, title, album, artist, genre, composer, year, recorded_date, copyright, track_num, bitrate, duration, played_count, last_played_time, last_played_position"
-#define MEDIA_IMAGE_META		"media_uuid, width, height, datetaken, orientation"
-#define SELECT_IMAGE_FROM_MEDIA	"SELECT "MEDIA_IMAGE_META" FROM "DB_TABLE_MEDIA" WHERE media_uuid='%s'"
-#define SELECT_AUDIO_FROM_MEDIA	"SELECT "MEDIA_AV_META", samplerate, channel FROM "DB_TABLE_MEDIA" WHERE media_uuid='%s'"
-#define SELECT_VIDEO_FROM_MEDIA	"SELECT "MEDIA_AV_META", width, height FROM "DB_TABLE_MEDIA" WHERE media_uuid='%s'"
+#define INSERT_BOOKMARK_TO_BOOKMARK			"INSERT INTO "DB_TABLE_BOOKMARK" (media_uuid, marked_time, thumbnail_path) VALUES ('%q', '%d', %Q)"
+#define SELECT_BOOKMARK_COUNT_BY_MEDIA_ID		"SELECT COUNT(*) FROM "BOOKMARK_MEDIA_JOIN" AND b.media_uuid='%s'"
+#define SELECT_BOOKMARK_LIST_BY_MEDIA_ID			"SELECT b.bookmark_id, b.media_uuid, b.marked_time, b.thumbnail_path FROM "BOOKMARK_MEDIA_JOIN" AND b.media_uuid='%s'"
 
 /* Update Meta*/
 #define UPDATE_AV_META_FROM_MEDIA	"UPDATE "DB_TABLE_MEDIA" SET played_count=%d, last_played_time=%d, last_played_position=%d WHERE media_uuid='%q'"
-#define UPDATE_IMAGE_META_FROM_MEDIA	"UPDATE "DB_TABLE_MEDIA" SET orientation=%d WHERE media_uuid='%q'"
-
-/* Get Media list of Group */
-//#define MEDIA_INFO_ITEM "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, thumbnail_path, description,
-//							rating, favourite, author, provider, content_name, category, location_tag, age_rating, is_drm, storage_type"
-#define MEDIA_INFO_ITEM "media_uuid, path, file_name, media_type, mime_type, size, added_time, modified_time, thumbnail_path, description, \
-							rating, favourite, author, provider, content_name, category, location_tag, age_rating, keyword, is_drm, storage_type, longitude, latitude, altitude, width, height, datetaken, orientation, title, album, artist, genre, composer, year, recorded_date, copyright, track_num, bitrate, duration, played_count, last_played_time, last_played_position, samplerate, channel"
+#define UPDATE_IMAGE_META_FROM_MEDIA	"UPDATE "DB_TABLE_MEDIA" SET orientation=%d, weather=%Q WHERE media_uuid='%q'"
 
 #define SELECT_MEDIA_ITEM 					"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1"
 #define SELECT_MEDIA_FROM_MEDIA			"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND media_uuid='%s'"
 #define SELECT_MEDIA_BY_PATH				"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND path='%q'"
 #define SELECT_MEDIA_FROM_ALBUM			"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND album_id=%d"
-#define SELECT_MEDIA_FROM_ARTIST			"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND artist='%q'"
-#define SELECT_MEDIA_FROM_GENRE			"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND genre='%q'"
-#define SELECT_MEDIA_FROM_COMPOSER		"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND author='%q'"
-#define SELECT_MEDIA_FROM_YEAR			"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND year='%q'"
 #define SELECT_MEDIA_FROM_GROUP			"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND %s='%q'"
 #define SELECT_MEDIA_FROM_GROUP_NULL	"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND %s IS NULL"
-#define SELECT_MEDIA_FROM_FOLDER			"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND folder_uuid='%q'"
+#define SELECT_MEDIA_FROM_FOLDER			"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE validity=1 AND folder_uuid='%s'"
 #define SELECT_MEDIA_FROM_TAG				"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE media_uuid IN (SELECT media_uuid FROM "DB_TABLE_TAG_MAP" WHERE tag_id=%d) AND validity=1"
 #define SELECT_MEDIA_FROM_PLAYLIST		"SELECT "MEDIA_INFO_ITEM" FROM "DB_TABLE_MEDIA" WHERE media_uuid IN (SELECT media_uuid FROM "DB_TABLE_PLAYLIST_MAP" WHERE playlist_id=%d) AND validity=1"
+#define SELECT_MEDIA_PATH_BY_ID			"SELECT path FROM "DB_TABLE_MEDIA" WHERE media_uuid='%q'"
 
 /* Delete */
-#define DELETE_MEDIA_FROM_MEDIA				"DELETE FROM "DB_TABLE_MEDIA" WHERE media_uuid='%q'"
-#define DELETE_FOLDER_FROM_FOLDER			"DELETE FROM "DB_TABLE_FOLDER" WHERE folder_uuid='%q'"
-#define DELETE_PLAYLIST_FROM_PLAYLIST			"DELETE FROM "DB_TABLE_PLAYLIST" WHERE playlist_id=%d"
-#define DELETE_TAG_FROM_TAG					"DELETE FROM "DB_TABLE_TAG" WHERE tag_id=%d"
-#define DELETE_BOOKMARK_FROM_BOOKMARK		"DELETE FROM "DB_TABLE_BOOKMARK" WHERE bookmark_id=%d"
-
+#define DELETE_MEDIA_FROM_MEDIA_BATCH	"DELETE FROM "DB_TABLE_MEDIA" WHERE %s"
+#define DELETE_PLAYLIST_FROM_PLAYLIST		"DELETE FROM "DB_TABLE_PLAYLIST" WHERE playlist_id=%d"
+#define DELETE_TAG_FROM_TAG				"DELETE FROM "DB_TABLE_TAG" WHERE tag_id=%d"
+#define DELETE_BOOKMARK_FROM_BOOKMARK	"DELETE FROM "DB_TABLE_BOOKMARK" WHERE bookmark_id=%d"
 
 /**
  *@internal
@@ -543,6 +551,11 @@ attribute_h _content_get_attirbute_handle(void);
  *@internal
  */
 attribute_h _content_get_alias_attirbute_handle(void);
+
+/**
+ *@internal
+ */
+int _media_info_get_media_info_from_db(const char *path, media_info_h media);
 
 /**
  *@internal
@@ -617,14 +630,15 @@ int _media_db_get_group_item(const char *group_name, filter_h filter, media_info
 /**
  *@internal
  */
-int _media_db_get_media_group_item_count(const char *group_name, media_group_e group, filter_h filter, int *item_count);
+int _media_db_get_media_group_item_count(const char *group_name, filter_h filter, media_group_e group, int *item_count);
 
 /**
  *@internal
  */
-int _media_db_get_media_group_item(const char *group_name, media_group_e group, filter_h filter, media_info_cb callback, void *user_data);
+int _media_db_get_media_group_item(const char *group_name, filter_h filter, media_group_e group, media_info_cb callback, void *user_data);
 
 /**
+ * @internal
  * @brief Creates a media filter attribute handle.
  * @details This function creates a media filter attribute handle. The handle can be
  * used to convert to attributes of database from attributes of user.
@@ -634,12 +648,14 @@ int _media_db_get_media_group_item(const char *group_name, media_group_e group, 
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  * @see media_filter_attribute_destory()
  *
  */
 int _media_filter_attribute_create(attribute_h *attr);
 
 /**
+ * @internal
  * @brief Add the attributes to the handle.
  * @details This function add the attribute to handle.
  * @param[in] filter The handle to media filter attribute
@@ -649,12 +665,14 @@ int _media_filter_attribute_create(attribute_h *attr);
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  * @see media_filter_attribute_remove()
  *
  */
 int _media_filter_attribute_add(attribute_h atrr, char *user_attr, char *platform_attr);
 
 /**
+ * @internal
  * @brief Destroys a media filter attribute handle.
  * @details The function frees all resources related to the media filter attribute handle. The filter attribute
  * handle no longer can be used to perform any operation. A new handle
@@ -664,12 +682,14 @@ int _media_filter_attribute_add(attribute_h atrr, char *user_attr, char *platfor
  * @return 0 on success, otherwise a negative error value.
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  * @see media_filter_create()
  *
  */
 int _media_filter_attribute_destory(attribute_h attr);
 
 /**
+ * @internal
  * @brief Replace to platform attributes from user attributes.
  * @details This function replace to platform attributes from user attributes to generate the WHERE clause
  * @param[in] filter The handle to media filter attribute
@@ -679,30 +699,84 @@ int _media_filter_attribute_destory(attribute_h attr);
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  * @see media_filter_attribute_create()
  * @see media_filter_attribute_destory()
  *
  */
 int _media_filter_attribute_generate(attribute_h attr, char *condition, media_content_collation_e collate_type, char **generated_condition);
+
+
+/**
+ * @internal
+ * @brief Replace to platform attributes from user attributes.
+ * @details This function replace to platform attributes from user attributes to generate the WHERE clause
+ * @param[in] filter The handle to media filter attribute
+ * @param[in] attr The attribute
+ * @param[in] generated_option The handle to generated option
+ * @return 0 on success, otherwise a negative error value.
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED Filed DB
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
+ * @see media_filter_attribute_create()
+ * @see media_filter_attribute_destory()
+ *
+ */
+
 int _media_filter_attribute_option_generate(attribute_h attr, filter_h filter, char **generated_option);
+
+#define FONT_COLOR_RESET    "\033[0m"
+#define FONT_COLOR_RED      "\033[31m"
+#define FONT_COLOR_GREEN    "\033[32m"
+#define FONT_COLOR_YELLOW   "\033[33m"
+#define FONT_COLOR_BLUE     "\033[34m"
+#define FONT_COLOR_PURPLE   "\033[35m"
+#define FONT_COLOR_CYAN     "\033[36m"
+#define FONT_COLOR_GRAY     "\033[37m"
+
+#define media_content_gettid() syscall(__NR_gettid)
 
 #define media_content_retv_if(expr, val) do { \
 			if(expr) { \
-				LOGE("[%s-%d]", __FUNCTION__, __LINE__);    \
+				LOGE(FONT_COLOR_RED"[%d]", media_content_gettid());    \
 				return (val); \
 			} \
 		} while (0)
 
 #define media_content_debug(fmt, arg...) do { \
-			LOGD("[%s-%d]"fmt"", __FUNCTION__, __LINE__,##arg);     \
+			LOGD(FONT_COLOR_RESET"[%d]"fmt"", media_content_gettid(), ##arg);     \
+		} while (0)
+
+#define media_content_info(fmt, arg...) do { \
+			LOGI(FONT_COLOR_GREEN"[%d]"fmt"", media_content_gettid() ,##arg);     \
 		} while (0)
 
 #define media_content_error(fmt, arg...) do { \
-			LOGE("[%s-%d]"fmt"", __FUNCTION__, __LINE__,##arg);     \
+			LOGE(FONT_COLOR_RED"[%d]"fmt"",media_content_gettid(), ##arg);     \
 		} while (0)
 
 #define media_content_debug_func() do { \
-			LOGD("[%s-%d]", __FUNCTION__, __LINE__);     \
+			LOGD(FONT_COLOR_RESET"[%d]", media_content_gettid());     \
+		} while (0)
+
+#define media_content_sec_debug(fmt, arg...) do { \
+			SECURE_LOGD(FONT_COLOR_RESET"[%d]"fmt"", media_content_gettid(), ##arg);     \
+		} while (0)
+
+#define media_content_sec_warn(fmt, arg...) do { \
+			SECURE_LOGW(FONT_COLOR_GREEN"[%d]"fmt"",media_content_gettid(), ##arg);     \
+		} while (0)
+
+#define media_content_sec_error(fmt, arg...) do { \
+			SECURE_LOGE(FONT_COLOR_RED"[%d]"fmt"",media_content_gettid(), ##arg);     \
+		} while (0)
+
+#define ERR_BUF_LENGTH 256
+#define media_content_stderror(fmt) do { \
+			char buf[ERR_BUF_LENGTH] = {0, }; \
+			strerror_r(errno, buf, ERR_BUF_LENGTH);	\
+			LOGE(FONT_COLOR_RED fmt" : STANDARD ERROR [%s]", buf); \
 		} while (0)
 
 #ifdef __cplusplus

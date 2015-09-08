@@ -9,7 +9,7 @@ SET(PREFIX ${CMAKE_INSTALL_PREFIX})
 SET(INC_DIR include)
 INCLUDE_DIRECTORIES(${INC_DIR})
 
-SET(dependents "dlog libmedia-service media-thumbnail libmedia-utils capi-base-common")
+SET(dependents "dlog libmedia-service media-thumbnail libmedia-utils capi-base-common icu-i18n vconf")
 SET(pc_dependents "dlog capi-base-common")
 
 INCLUDE(FindPkgConfig)
@@ -27,6 +27,7 @@ ENDIF("${ARCH}" STREQUAL "arm")
 
 ADD_DEFINITIONS("-DPREFIX=\"${CMAKE_INSTALL_PREFIX}\"")
 ADD_DEFINITIONS("-DTIZEN_DEBUG")
+ADD_DEFINITIONS("-D_FILE_OFFSET_BITS=64")
 
 SET(CMAKE_EXE_LINKER_FLAGS "-Wl,--as-needed -Wl,--rpath=/usr/lib")
 

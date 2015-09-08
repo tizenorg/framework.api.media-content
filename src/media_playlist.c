@@ -20,45 +20,44 @@
 #include <media_info_private.h>
 #include <media_playlist.h>
 
-
-static __thread GList *g_playlist_item_list = NULL;
-
-static void __media_playlist_item_add(media_playlist_item_s *item_s);
-static void __media_playlist_item_release(void);
+static void __media_playlist_item_add(media_playlist_s *playlist, media_playlist_item_s *item_s);
+static void __media_playlist_item_release(media_playlist_s *playlist);
 static int __media_playlist_insert_playlist_record(const char *playlist_name, int *playlist_id);
 static int __media_playlist_insert_item_to_playlist(int playlist_id, const char *media_id);
 static int __media_playlist_remove_item_from_playlist(int playlist_id, int playlist_member_id);
 static int __media_playlist_update_playlist_name(int playlist_id, const char *playlist_name);
+static int __media_playlist_update_thumbnail_path(int playlist_id, const char *path);
 static int __media_playlist_update_play_order(int playlist_id, int playlist_member_id, int play_order);
 
-static void __media_playlist_item_add(media_playlist_item_s *item_s)
+static void __media_playlist_item_add(media_playlist_s *playlist, media_playlist_item_s *item_s)
 {
-	g_playlist_item_list = g_list_append(g_playlist_item_list, item_s);
+	playlist->item_list = g_list_append(playlist->item_list, item_s);
 }
 
-static void __media_playlist_item_release(void)
+static void __media_playlist_item_release(media_playlist_s *playlist)
 {
 	int idx = 0;
 	int list_cnt = 0;
 	media_playlist_item_s *item = NULL;
 
-	list_cnt = g_list_length(g_playlist_item_list);
+	list_cnt = g_list_length(playlist->item_list);
 
 	media_content_debug("list_cnt : [%d]", list_cnt);
 
 	for(idx = 0; idx < list_cnt; idx++)
 	{
-		item = (media_playlist_item_s*)g_list_nth_data(g_playlist_item_list, idx);
+		item = (media_playlist_item_s*)g_list_nth_data(playlist->item_list, idx);
 		if(item != NULL)
 		{
 			SAFE_FREE(item->media_id);
 			SAFE_FREE(item->playlist_name);
+			SAFE_FREE(item->thumbnail_path);
 			SAFE_FREE(item);
 		}
 	}
 
-	g_list_free(g_playlist_item_list);
-	g_playlist_item_list = NULL;
+	g_list_free(playlist->item_list);
+	playlist->item_list = NULL;
 
 }
 
@@ -150,6 +149,19 @@ static int __media_playlist_update_playlist_name(int playlist_id, const char *pl
 	return ret;
 }
 
+static int __media_playlist_update_thumbnail_path(int playlist_id, const char *path)
+{
+	int ret = MEDIA_CONTENT_ERROR_NONE;
+	char *query_str = NULL;
+
+	query_str = sqlite3_mprintf(UPDATE_PLAYLIST_THUMBNAIL_FROM_PLAYLIST, path, playlist_id);
+
+	ret = _content_query_sql(query_str);
+	sqlite3_free(query_str);
+
+	return ret;
+}
+
 static int __media_playlist_update_play_order(int playlist_id, int playlist_member_id, int play_order)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
@@ -175,7 +187,6 @@ int media_playlist_insert_to_db(const char *name, media_playlist_h *playlist)
 	}
 
 	media_playlist_s *_playlist = (media_playlist_s*)calloc(1, sizeof(media_playlist_s));
-
 	if(_playlist == NULL)
 	{
 		media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
@@ -229,8 +240,6 @@ int media_playlist_get_playlist_count_from_db(filter_h filter, int *playlist_cou
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
 	if(playlist_count != NULL)
 	{
 		ret = _media_db_get_group_count(filter, MEDIA_GROUP_PLAYLIST, playlist_count);
@@ -248,8 +257,6 @@ int media_playlist_foreach_playlist_from_db(filter_h filter, media_playlist_cb c
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
 	if(callback == NULL)
 	{
 		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
@@ -264,8 +271,6 @@ int media_playlist_foreach_playlist_from_db(filter_h filter, media_playlist_cb c
 int media_playlist_get_media_count_from_db(int playlist_id, filter_h filter, int *media_count)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
-
-	media_content_debug_func();
 
 	if((playlist_id > 0) && (media_count != NULL))
 	{
@@ -284,11 +289,8 @@ int media_playlist_foreach_media_from_db(int playlist_id, filter_h filter, playl
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
 	if((playlist_id > 0) && (callback != NULL))
 	{
-		//ret = _media_db_get_group_item_by_id(playlist_id, filter, callback, user_data, MEDIA_GROUP_PLAYLIST);
 		ret = _media_db_get_playlist_item(playlist_id, filter, callback, user_data);
 	}
 	else
@@ -305,11 +307,10 @@ int media_playlist_destroy(media_playlist_h playlist)
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	media_playlist_s *_playlist = (media_playlist_s*)playlist;
 
-	media_content_debug_func();
-
 	if(_playlist)
 	{
 		SAFE_FREE(_playlist->name);
+		SAFE_FREE(_playlist->thumbnail_path);
 		SAFE_FREE(_playlist);
 
 		ret = MEDIA_CONTENT_ERROR_NONE;
@@ -327,8 +328,6 @@ int media_playlist_clone(media_playlist_h *dst, media_playlist_h src)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	media_playlist_s *_src = (media_playlist_s*)src;
-
-	media_content_debug_func();
 
 	if(_src != NULL)
 	{
@@ -365,7 +364,7 @@ int media_playlist_clone(media_playlist_h *dst, media_playlist_h src)
 	return ret;
 }
 
-int media_playlist_get_playlist_from_db(int playlist_id, filter_h filter, media_playlist_h *playlist)
+int media_playlist_get_playlist_from_db(int playlist_id, media_playlist_h *playlist)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	sqlite3_stmt *stmt = NULL;
@@ -383,10 +382,18 @@ int media_playlist_get_playlist_from_db(int playlist_id, filter_h filter, media_
 		while(sqlite3_step(stmt) == SQLITE_ROW)
 		{
 			media_playlist_s *_playlist = (media_playlist_s*)calloc(1, sizeof(media_playlist_s));
+			if(_playlist == NULL)
+			{
+				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+				SQLITE3_FINALIZE(stmt);
+				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+			}
 
 			_playlist->playlist_id = (int)sqlite3_column_int(stmt, 0);
 			if(STRING_VALID((const char *)sqlite3_column_text(stmt, 1)))
 				_playlist->name = strdup((const char *)sqlite3_column_text(stmt, 1));
+			if(STRING_VALID((const char *)sqlite3_column_text(stmt, 3)))
+				_playlist->thumbnail_path = strdup((const char *)sqlite3_column_text(stmt, 3));
 
 			*playlist = (media_playlist_h)_playlist;
 		}
@@ -452,6 +459,37 @@ int media_playlist_get_name(media_playlist_h playlist, char **name)
 	return ret;
 }
 
+int media_playlist_get_thumbnail_path(media_playlist_h playlist, char **path)
+{
+	int ret = MEDIA_CONTENT_ERROR_NONE;
+	media_playlist_s *_playlist = (media_playlist_s*)playlist;
+	if(_playlist)
+	{
+		if(STRING_VALID(_playlist->thumbnail_path))
+		{
+			*path = strdup(_playlist->thumbnail_path);
+			if(*path == NULL)
+			{
+				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+			}
+		}
+		else
+		{
+			*path = NULL;
+		}
+
+		ret = MEDIA_CONTENT_ERROR_NONE;
+	}
+	else
+	{
+		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
+		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
+	}
+
+	return ret;
+}
+
 int media_playlist_get_play_order(media_playlist_h playlist, int playlist_member_id, int *play_order)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
@@ -495,11 +533,17 @@ int media_playlist_set_name(media_playlist_h playlist, const char *playlist_name
 		SAFE_FREE(_playlist->name);
 
 		media_playlist_item_s *item = (media_playlist_item_s*)calloc(1, sizeof(media_playlist_item_s));
+		if(item == NULL)
+		{
+			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+		}
 
 		item->playlist_name = strdup(playlist_name);
 		item->function = MEDIA_PLAYLIST_UPDATE_PLAYLIST_NAME;
 		if(item->playlist_name == NULL)
 		{
+			SAFE_FREE(item);
 			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
 			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
 		}
@@ -507,11 +551,58 @@ int media_playlist_set_name(media_playlist_h playlist, const char *playlist_name
 		_playlist->name = strdup(playlist_name);
 		if(_playlist->name == NULL)
 		{
+			SAFE_FREE(item->playlist_name);
+			SAFE_FREE(item);
 			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
 			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
 		}
 
-		__media_playlist_item_add(item);
+		__media_playlist_item_add(_playlist, item);
+	}
+	else
+	{
+		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
+		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
+	}
+
+	return ret;
+}
+
+int media_playlist_set_thumbnail_path(media_playlist_h playlist, const char *path)
+{
+	int ret = MEDIA_CONTENT_ERROR_NONE;
+	media_playlist_s *_playlist = (media_playlist_s*)playlist;
+
+	if(_playlist != NULL && STRING_VALID(path))
+	{
+		SAFE_FREE(_playlist->thumbnail_path);
+
+		media_playlist_item_s *item = (media_playlist_item_s*)calloc(1, sizeof(media_playlist_item_s));
+		if(item == NULL)
+		{
+			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+		}
+
+		item->thumbnail_path = strdup(path);
+		item->function = MEDIA_PLAYLIST_UPDATE_THUMBNAIL_PATH;
+		if(item->thumbnail_path == NULL)
+		{
+			SAFE_FREE(item);
+			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+		}
+
+		_playlist->thumbnail_path = strdup(path);
+		if(_playlist->thumbnail_path == NULL)
+		{
+			SAFE_FREE(item->thumbnail_path);
+			SAFE_FREE(item);
+			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+		}
+
+		__media_playlist_item_add(_playlist, item);
 	}
 	else
 	{
@@ -530,12 +621,17 @@ int media_playlist_set_play_order(media_playlist_h playlist, int playlist_member
 	if((_playlist != NULL) && (playlist_member_id > 0) && (play_order >= 0))
 	{
 		media_playlist_item_s *item = (media_playlist_item_s*)calloc(1, sizeof(media_playlist_item_s));
+		if(item == NULL)
+		{
+			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+		}
 
 		item->playlist_member_id = playlist_member_id;
 		item->function = MEDIA_PLAYLIST_UPDATE_PLAY_ORDER;
 		item->play_order = play_order;
 
-		__media_playlist_item_add(item);
+		__media_playlist_item_add(_playlist, item);
 	}
 	else
 	{
@@ -554,17 +650,23 @@ int media_playlist_add_media(media_playlist_h playlist, const char *media_id)
 	if(_playlist != NULL && STRING_VALID(media_id))
 	{
 		media_playlist_item_s *item = (media_playlist_item_s*)calloc(1, sizeof(media_playlist_item_s));
+		if(item == NULL)
+		{
+			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+		}
 
 		item->media_id = strdup(media_id);
 		item->function = MEDIA_PLAYLIST_ADD;
 
 		if(item->media_id == NULL)
 		{
+			SAFE_FREE(item);
 			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
 			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
 		}
 
-		__media_playlist_item_add(item);
+		__media_playlist_item_add(_playlist, item);
 	}
 	else
 	{
@@ -584,11 +686,16 @@ int media_playlist_remove_media(media_playlist_h playlist, int playlist_member_i
 	if((_playlist != NULL) && (playlist_member_id > 0))
 	{
 		media_playlist_item_s *item = (media_playlist_item_s*)calloc(1, sizeof(media_playlist_item_s));
+		if(item == NULL)
+		{
+			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+		}
 
 		item->playlist_member_id = playlist_member_id;
 		item->function = MEDIA_PLAYLIST_REMOVE;
 
-		__media_playlist_item_add(item);
+		__media_playlist_item_add(_playlist, item);
 	}
 	else
 	{
@@ -613,10 +720,15 @@ int media_playlist_update_to_db(media_playlist_h playlist)
 		return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
 	}
 
-	length = g_list_length(g_playlist_item_list);
+	if(_playlist->item_list != NULL) {
+		length = g_list_length(_playlist->item_list);
+	} else {
+		media_content_error("operation list length is 0");
+		return MEDIA_CONTENT_ERROR_NONE;
+	}
 
 	for (idx = 0; idx < length; idx++) {
-		_playlist_item = (media_playlist_item_s*)g_list_nth_data(g_playlist_item_list, idx);
+		_playlist_item = (media_playlist_item_s*)g_list_nth_data(_playlist->item_list, idx);
 		if(_playlist_item != NULL) {
 			switch(_playlist_item->function) {
 				case MEDIA_PLAYLIST_ADD:
@@ -637,6 +749,12 @@ int media_playlist_update_to_db(media_playlist_h playlist)
 				}
 				break;
 
+				case MEDIA_PLAYLIST_UPDATE_THUMBNAIL_PATH:
+				{
+					ret = __media_playlist_update_thumbnail_path(_playlist->playlist_id, _playlist_item->thumbnail_path);
+				}
+				break;
+
 				case MEDIA_PLAYLIST_UPDATE_PLAY_ORDER:
 				{
 					ret = __media_playlist_update_play_order(_playlist->playlist_id, _playlist_item->playlist_member_id, _playlist_item->play_order);
@@ -646,7 +764,7 @@ int media_playlist_update_to_db(media_playlist_h playlist)
 		}
 	}
 
-	__media_playlist_item_release();
+	__media_playlist_item_release(_playlist);
 
 	return ret;
 }

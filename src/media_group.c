@@ -24,8 +24,6 @@ int media_album_get_album_count_from_db(filter_h filter, int *album_count)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
 	if(album_count != NULL)
 	{
 		ret = _media_db_get_group_count(filter, MEDIA_GROUP_ALBUM, album_count);
@@ -43,8 +41,6 @@ int media_album_foreach_album_from_db(filter_h filter, media_album_cb callback, 
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
 	if(callback == NULL)
 	{
 		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
@@ -59,8 +55,6 @@ int media_album_foreach_album_from_db(filter_h filter, media_album_cb callback, 
 int media_album_get_media_count_from_db(int album_id, filter_h filter, int *media_count)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
-
-	media_content_debug_func();
 
 	if((album_id > 0) && (media_count != NULL))
 	{
@@ -78,8 +72,6 @@ int media_album_get_media_count_from_db(int album_id, filter_h filter, int *medi
 int media_album_foreach_media_from_db(int album_id, filter_h filter, media_info_cb callback, void *user_data)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
-
-	media_content_debug_func();
 
 	if((album_id > 0) && (callback != NULL))
 	{
@@ -100,8 +92,6 @@ int media_album_get_album_from_db(int album_id, media_album_h *album)
 	sqlite3_stmt *stmt = NULL;
 	char select_query[DEFAULT_QUERY_SIZE];
 
-	media_content_debug_func();
-
 	if(album_id < 0)
 	{
 		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
@@ -118,6 +108,12 @@ int media_album_get_album_from_db(int album_id, media_album_h *album)
 	while(sqlite3_step(stmt) == SQLITE_ROW)
 	{
 		media_album_s *_album = (media_album_s*)calloc(1, sizeof(media_album_s));
+		if(_album == NULL)
+		{
+			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
+			SQLITE3_FINALIZE(stmt);
+			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
+		}
 
 		_album->album_id = (int)sqlite3_column_int(stmt, 0);
 
@@ -130,10 +126,7 @@ int media_album_get_album_from_db(int album_id, media_album_h *album)
 		*album = (media_album_h)_album;
 	}
 
-	if(stmt != NULL)
-	{
-		sqlite3_finalize(stmt);
-	}
+	SQLITE3_FINALIZE(stmt);
 
 	return ret;
 }
@@ -142,8 +135,6 @@ int media_album_destroy(media_album_h album)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	media_album_s *_album = (media_album_s*)album;
-
-	media_content_debug_func();
 
 	if(_album)
 	{
@@ -345,9 +336,7 @@ int media_group_get_group_count_from_db(filter_h filter, media_group_e group, in
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
-	if((group < MEDIA_CONTENT_GROUP_DISPLAY_NAME) || (group > MEDIA_CONTENT_GROUP_KEYWORD) || (group_count == NULL))
+	if((group < MEDIA_CONTENT_GROUP_DISPLAY_NAME) || (group >= MEDIA_CONTENT_GROUP_MAX) || (group_count == NULL))
 	{
 		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
 		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
@@ -364,9 +353,7 @@ int media_group_foreach_group_from_db(filter_h filter, media_group_e group, medi
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
-	if((callback == NULL) || (group < MEDIA_CONTENT_GROUP_DISPLAY_NAME) || (group > MEDIA_CONTENT_GROUP_KEYWORD))
+	if((callback == NULL) || (group < MEDIA_CONTENT_GROUP_DISPLAY_NAME) || (group >= MEDIA_CONTENT_GROUP_MAX))
 	{
 		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
 		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
@@ -383,16 +370,14 @@ int media_group_get_media_count_from_db(const char *group_name, media_group_e gr
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
-	if((media_count == NULL) || (group < MEDIA_CONTENT_GROUP_DISPLAY_NAME) || (group > MEDIA_CONTENT_GROUP_KEYWORD))
+	if((media_count == NULL) || (group < MEDIA_CONTENT_GROUP_DISPLAY_NAME) || (group >= MEDIA_CONTENT_GROUP_MAX))
 	{
 		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
 		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
 	}
 	else
 	{
-		ret = _media_db_get_media_group_item_count(group_name, group, filter, media_count);
+		ret = _media_db_get_media_group_item_count(group_name, filter, group, media_count);
 	}
 
 	return ret;
@@ -402,16 +387,14 @@ int media_group_foreach_media_from_db(const char *group_name, media_group_e grou
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
-	if((callback == NULL) || (group < MEDIA_CONTENT_GROUP_DISPLAY_NAME) || (group > MEDIA_CONTENT_GROUP_KEYWORD))
+	if((callback == NULL) || (group < MEDIA_CONTENT_GROUP_DISPLAY_NAME) || (group >= MEDIA_CONTENT_GROUP_MAX))
 	{
 		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
 		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
 	}
 	else
 	{
-		ret = _media_db_get_media_group_item(group_name, group, filter, callback, user_data);
+		ret = _media_db_get_media_group_item(group_name, filter, group, callback, user_data);
 	}
 
 	return ret;

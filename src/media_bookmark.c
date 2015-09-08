@@ -15,12 +15,8 @@
 */
 
 
-#include <media_content.h>
 #include <media_info_private.h>
-#include <media-svc.h>
 
-int media_bookmark_foreach_bookmark_from_db (filter_h filter, media_bookmark_cb callback, void *user_data);
-int media_bookmark_get_media_id(media_bookmark_h bookmark, char **media_id);
 
 int media_bookmark_insert_to_db(const char *media_id, time_t time, const char *thumbnail_path)
 {
@@ -66,8 +62,6 @@ int media_bookmark_get_bookmark_count_from_db(filter_h filter, int *bookmark_cou
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
-	media_content_debug_func();
-
 	if (bookmark_count == NULL)
 	{
 		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
@@ -75,23 +69,6 @@ int media_bookmark_get_bookmark_count_from_db(filter_h filter, int *bookmark_cou
 	}
 
 	ret = _media_db_get_group_count(filter, MEDIA_GROUP_BOOKMARK, bookmark_count);
-
-	return ret;
-}
-
-int media_bookmark_foreach_bookmark_from_db (filter_h filter, media_bookmark_cb callback, void *user_data)
-{
-	int ret = MEDIA_CONTENT_ERROR_NONE;
-
-	media_content_debug_func();
-
-	if(callback == NULL)
-	{
-		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
-		return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
-	}
-
-	ret = _media_db_get_bookmark(NULL, filter, callback, user_data);
 
 	return ret;
 }
@@ -178,38 +155,6 @@ int media_bookmark_get_bookmark_id(media_bookmark_h bookmark, int *bookmark_id)
 	if(_bookmark)
 	{
 		*bookmark_id = _bookmark->bookmark_id;
-		ret = MEDIA_CONTENT_ERROR_NONE;
-	}
-	else
-	{
-		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
-		ret = MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
-	}
-
-	return ret;
-}
-
-int media_bookmark_get_media_id(media_bookmark_h bookmark, char **media_id)
-{
-	int ret = MEDIA_CONTENT_ERROR_NONE;
-	media_bookmark_s *_bookmark = (media_bookmark_s*)bookmark;
-
-	if(_bookmark)
-	{
-		if(STRING_VALID(_bookmark->media_id))
-		{
-			*media_id = strdup(_bookmark->media_id);
-			if(*media_id == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
-		}
-		else
-		{
-			*media_id = NULL;
-		}
-
 		ret = MEDIA_CONTENT_ERROR_NONE;
 	}
 	else
