@@ -162,12 +162,7 @@ int media_album_clone(media_album_h *dst, media_album_h src)
 	if(_src != NULL)
 	{
 		media_album_s *_dst = (media_album_s*)calloc(1, sizeof(media_album_s));
-
-		if(_dst == NULL)
-		{
-			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-		}
+		media_content_retvm_if(_dst == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 
 		_dst->album_id = _src->album_id;
 
@@ -246,11 +241,7 @@ int media_album_get_name(media_album_h album, char **name)
 		if(STRING_VALID(_album->name))
 		{
 			*name = strdup(_album->name);
-			if(*name == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*name == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -278,11 +269,7 @@ int media_album_get_artist(media_album_h album, char **artist)
 		if(STRING_VALID(_album->artist))
 		{
 			*artist = strdup(_album->artist);
-			if(*artist == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*artist == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -310,11 +297,7 @@ int media_album_get_album_art(media_album_h album, char **album_art)
 		if(STRING_VALID(_album->album_art_path))
 		{
 			*album_art = strdup(_album->album_art_path);
-			if(*album_art == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*album_art == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{

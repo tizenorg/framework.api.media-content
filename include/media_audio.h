@@ -363,6 +363,7 @@ int audio_meta_get_channel(audio_meta_h audio, int *channel);
 int audio_meta_get_duration(audio_meta_h audio, int *duration);
 
 /**
+ * @deprecated Deprecated since 2.4. [Use media_info_get_played_count() instead]
  * @brief Gets the number of times the given audio has been played.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
@@ -379,6 +380,7 @@ int audio_meta_get_duration(audio_meta_h audio, int *duration);
 int audio_meta_get_played_count(audio_meta_h audio, int *played_count);
 
 /**
+ * @deprecated Deprecated since 2.4. [Use media_info_get_played_time() instead]
  * @brief Gets the played time parameter of an audio.
  * @details This function returns audio's elapsed playback time parameter as a period
  *          starting from the beginning of the track.
@@ -398,6 +400,7 @@ int audio_meta_get_played_count(audio_meta_h audio, int *played_count);
 int audio_meta_get_played_time(audio_meta_h audio, time_t *played_time);
 
 /**
+ * @deprecated Deprecated since 2.4.
  * @brief Gets the played position parameter of an audio.
  * @details This function returns audio's elapsed playback position parameter as a period
  *          starting from the beginning of the track.
@@ -417,6 +420,7 @@ int audio_meta_get_played_time(audio_meta_h audio, time_t *played_time);
 int audio_meta_get_played_position(audio_meta_h audio, int *played_position);
 
 /**
+ * @deprecated Deprecated since 2.4. [Use media_info_increase_played_count() instead]
  * @brief Sets the played count to an audio meta handle.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
@@ -435,6 +439,7 @@ int audio_meta_get_played_position(audio_meta_h audio, int *played_position);
 int audio_meta_set_played_count(audio_meta_h audio, int played_count);
 
 /**
+ * @deprecated Deprecated since 2.4. [Use media_info_set_played_time() instead]
  * @brief Sets the played time to an audio meta handle.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
@@ -453,8 +458,11 @@ int audio_meta_set_played_count(audio_meta_h audio, int played_count);
 int audio_meta_set_played_time(audio_meta_h audio, time_t played_time);
 
 /**
+ * @deprecated Deprecated since 2.4.
  * @brief Sets the played position to an audio meta handle.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
+ *
+ * @remarks  It is NOT recommended to use this attribute for your application-specific purpose because this attribute can be overwritten by other applications (even 0).
  *
  * @param[in] audio           The audio metadata handle
  * @param[in] played_position The played position of the audio
@@ -490,6 +498,11 @@ int audio_meta_set_played_position(audio_meta_h audio, int played_position);
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().

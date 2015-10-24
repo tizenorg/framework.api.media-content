@@ -63,7 +63,7 @@ static int __media_tag_insert_item_to_tag(int tag_id, const char *media_id)
 	query_str = sqlite3_mprintf("INSERT INTO %q (tag_id, media_uuid) values (%d, '%q')",
 			DB_TABLE_TAG_MAP, tag_id, media_id);
 	ret = _content_query_sql(query_str);
-	sqlite3_free(query_str);
+	SQLITE3_SAFE_FREE(query_str);
 
 	return ret;
 }
@@ -76,7 +76,7 @@ static int __media_tag_remove_item_from_tag(int tag_id, const char *media_id)
 	query_str = sqlite3_mprintf(REMOVE_TAG_ITEM_FROM_TAG_MAP, tag_id, media_id);
 
 	ret = _content_query_sql(query_str);
-	sqlite3_free(query_str);
+	SQLITE3_SAFE_FREE(query_str);
 
 	return ret;
 }
@@ -89,7 +89,7 @@ static int __media_tag_update_tag_name(int tag_id, const char *tag_name)
 	query_str = sqlite3_mprintf(UPDATE_TAG_NAME_FROM_TAG, tag_name, tag_id);
 
 	ret = _content_query_sql(query_str);
-	sqlite3_free(query_str);
+	SQLITE3_SAFE_FREE(query_str);
 
 	return ret;
 }
@@ -99,29 +99,33 @@ static int __media_tag_get_tag_info_from_db(const char *name, media_tag_h tag)
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	sqlite3_stmt *stmt = NULL;
 	char *select_query = NULL;
+	int id = 0;
+	char *tag_name = NULL;
 	media_tag_s *_tag = (media_tag_s*)tag;
 
-	if(_tag == NULL)
-	{
-		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
-		return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
-	}
+	media_content_retvm_if(_tag == NULL, MEDIA_CONTENT_ERROR_INVALID_PARAMETER, "invalid tag");
 
 	select_query = sqlite3_mprintf(SELECT_TAG_BY_NAME, name);
 
 	ret = _content_query_prepare(&stmt, select_query, NULL, NULL);
-	sqlite3_free(select_query);
+	SQLITE3_SAFE_FREE(select_query);
 	media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
 
 	while(sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		_tag->tag_id = (int)sqlite3_column_int(stmt,0);
+		id = (int)sqlite3_column_int(stmt,0);
 
 		if(STRING_VALID((const char *)sqlite3_column_text(stmt, 1)))
 		{
-			_tag->name = strdup((const char *)sqlite3_column_text(stmt, 1));
+			if(tag_name)
+				SAFE_FREE(tag_name);
+
+			tag_name = strdup((const char *)sqlite3_column_text(stmt, 1));
 		}
 	}
+
+	_tag->tag_id = id;
+	_tag->name = tag_name;
 
 	SQLITE3_FINALIZE(stmt);
 
@@ -141,16 +145,12 @@ int media_tag_insert_to_db(const char *tag_name, media_tag_h *tag)
 
 	query_str = sqlite3_mprintf(INSERT_TAG_TO_TAG, tag_name);
 	ret = _content_query_sql(query_str);
-	sqlite3_free(query_str);
+	SQLITE3_SAFE_FREE(query_str);
 
 	if(ret == MEDIA_CONTENT_ERROR_NONE)
 	{
 		media_tag_s *_tag = (media_tag_s*)calloc(1, sizeof(media_tag_s));
-		if(_tag == NULL)
-		{
-			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-		}
+		media_content_retvm_if(_tag == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 
 		ret = __media_tag_get_tag_info_from_db(tag_name, (media_tag_h)_tag);
 		*tag = (media_tag_h)_tag;
@@ -174,7 +174,7 @@ int media_tag_delete_from_db(int tag_id)
 
 	ret = _content_query_sql(query_str);
 
-	sqlite3_free(query_str);
+	SQLITE3_SAFE_FREE(query_str);
 
 	return ret;
 }
@@ -270,12 +270,7 @@ int media_tag_clone(media_tag_h *dst, media_tag_h src)
 	if((_src != NULL))
 	{
 		_dst = (media_tag_s*)calloc(1, sizeof(media_tag_s));
-
-		if(_dst == NULL)
-		{
-			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-		}
+		media_content_retvm_if(_dst == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 
 		_dst->tag_id = _src->tag_id;
 
@@ -329,11 +324,7 @@ int media_tag_get_name(media_tag_h tag, char **name)
 		if(STRING_VALID(_tag->name))
 		{
 			*name = strdup(_tag->name);
-			if(*name == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*name == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -370,10 +361,14 @@ int media_tag_get_tag_from_db(int tag_id, media_tag_h *tag)
 	ret = _content_query_prepare(&stmt, select_query, NULL, NULL);
 	media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
 
+	media_tag_s *_tag = NULL;
+
 	while(sqlite3_step(stmt) == SQLITE_ROW)
 	{
-		media_tag_s *_tag = (media_tag_s*)calloc(1, sizeof(media_tag_s));
+		if(_tag)
+			media_tag_destroy((media_tag_h)_tag);
 
+		_tag = (media_tag_s*)calloc(1, sizeof(media_tag_s));
 		if(_tag == NULL)
 		{
 			SQLITE3_FINALIZE(stmt);
@@ -404,11 +399,7 @@ int media_tag_add_media(media_tag_h tag, const char *media_id)
 	if((_tag != NULL) && STRING_VALID(media_id))
 	{
 		media_tag_item_s *_item = (media_tag_item_s*)calloc(1, sizeof(media_tag_item_s));
-		if(_item == NULL)
-		{
-			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-		}
+		media_content_retvm_if(_item == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 
 		_item->media_id = strdup(media_id);
 		_item->function = MEDIA_TAG_ADD;
@@ -439,11 +430,7 @@ int media_tag_remove_media(media_tag_h tag, const char *media_id)
 	if(_tag != NULL && STRING_VALID(media_id))
 	{
 		media_tag_item_s *_item = (media_tag_item_s*)calloc(1, sizeof(media_tag_item_s));
-		if(_item == NULL)
-		{
-			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-		}
+		media_content_retvm_if(_item == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 
 		_item->media_id = strdup(media_id);
 		_item->function = MEDIA_TAG_REMOVE;
@@ -476,11 +463,7 @@ int media_tag_set_name(media_tag_h tag, char *tag_name)
 		SAFE_FREE(_tag->name);
 
 		media_tag_item_s *_item = (media_tag_item_s*)calloc(1, sizeof(media_tag_item_s));
-		if(_item == NULL)
-		{
-			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-		}
+		media_content_retvm_if(_item == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 
 		_item->tag_name = strdup(tag_name);
 		_item->function = MEDIA_TAG_UPDATE_TAG_NAME;
@@ -529,7 +512,7 @@ int media_tag_update_to_db(media_tag_h tag)
 	if(_tag->item_list != NULL) {
 		length = g_list_length(_tag->item_list);
 	} else {
-		media_content_error("operation list length is 0");
+		media_content_debug("operation list length is 0");
 		return MEDIA_CONTENT_ERROR_NONE;
 	}
 
@@ -553,6 +536,9 @@ int media_tag_update_to_db(media_tag_h tag)
 				{
 					ret = __media_tag_update_tag_name(_tag->tag_id, _tag_item->tag_name);
 				}
+				break;
+
+				default:
 				break;
 			}
 		}

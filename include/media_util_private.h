@@ -30,8 +30,8 @@ extern "C" {
  *@internal
  */
 
-int _media_util_check_file(const char *path);
-
+int _media_util_check_file_exist(const char *path);
+int _media_util_check_ignore_file(const char *path, bool *ignore);
 int _media_util_check_ignore_dir(const char *dir_path, bool *ignore);
 
 

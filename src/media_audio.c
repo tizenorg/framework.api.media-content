@@ -57,13 +57,7 @@ int audio_meta_clone(audio_meta_h *dst, audio_meta_h src)
 	if(_src != NULL)
 	{
 		audio_meta_s *_dst = (audio_meta_s*)calloc(1, sizeof(audio_meta_s));
-
-		if(_dst == NULL)
-		{
-
-			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-		}
+		media_content_retvm_if(_dst == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 
 		if(STRING_VALID(_src->media_id))
 		{
@@ -217,11 +211,7 @@ int audio_meta_get_media_id(audio_meta_h audio, char **media_id)
 		if(STRING_VALID(_audio->media_id))
 		{
 			*media_id = strdup(_audio->media_id);
-			if(*media_id == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*media_id == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -248,11 +238,7 @@ int audio_meta_get_album(audio_meta_h audio, char **album_name)
 		if(STRING_VALID(_audio->album))
 		{
 			*album_name = strdup(_audio->album);
-			if(*album_name == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*album_name == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -280,11 +266,7 @@ int audio_meta_get_artist(audio_meta_h audio, char **artist_name)
 		if(STRING_VALID(_audio->artist))
 		{
 			*artist_name = strdup(_audio->artist);
-			if(*artist_name == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*artist_name == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -312,11 +294,7 @@ int audio_meta_get_album_artist(audio_meta_h audio, char **album_artist_name)
 		if(STRING_VALID(_audio->album_artist))
 		{
 			*album_artist_name = strdup(_audio->album_artist);
-			if(*album_artist_name == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*album_artist_name == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -338,16 +316,13 @@ int audio_meta_get_genre(audio_meta_h audio, char **genre_name)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	audio_meta_s *_audio = (audio_meta_s*)audio;
+
 	if(_audio)
 	{
 		if(STRING_VALID(_audio->genre))
 		{
 			*genre_name = strdup(_audio->genre);
-			if(*genre_name == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*genre_name == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -369,16 +344,13 @@ int audio_meta_get_composer(audio_meta_h audio, char **composer_name)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	audio_meta_s *_audio = (audio_meta_s*)audio;
+
 	if(_audio)
 	{
 		if(STRING_VALID(_audio->composer))
 		{
 			*composer_name = strdup(_audio->composer);
-			if(*composer_name == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*composer_name == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -400,16 +372,13 @@ int audio_meta_get_year(audio_meta_h audio, char **year)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	audio_meta_s *_audio = (audio_meta_s*)audio;
+
 	if(_audio)
 	{
 		if(STRING_VALID(_audio->year))
 		{
 			*year = strdup(_audio->year);
-			if(*year == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*year == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -431,16 +400,13 @@ int audio_meta_get_recorded_date(audio_meta_h audio, char **recorded_date)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	audio_meta_s *_audio = (audio_meta_s*)audio;
+
 	if(_audio)
 	{
 		if(STRING_VALID(_audio->recorded_date))
 		{
 			*recorded_date = strdup(_audio->recorded_date);
-			if(*recorded_date == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*recorded_date == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -462,16 +428,13 @@ int audio_meta_get_copyright(audio_meta_h audio, char **copyright)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	audio_meta_s *_audio = (audio_meta_s*)audio;
+
 	if(_audio)
 	{
 		if(STRING_VALID(_audio->copyright))
 		{
 			*copyright = strdup(_audio->copyright);
-			if(*copyright == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*copyright == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -493,16 +456,13 @@ int audio_meta_get_track_num(audio_meta_h audio, char **track_num)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	audio_meta_s *_audio = (audio_meta_s*)audio;
+
 	if(_audio)
 	{
 		if(STRING_VALID(_audio->track_num))
 		{
 			*track_num = strdup(_audio->track_num);
-			if(*track_num == NULL)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(*track_num == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 		}
 		else
 		{
@@ -736,9 +696,15 @@ int audio_meta_update_to_db(audio_meta_h audio)
 
 	if(_audio != NULL && STRING_VALID(_audio->media_id))
 	{
-		sql = sqlite3_mprintf(UPDATE_AV_META_FROM_MEDIA, _audio->played_count, _audio->played_time, _audio->played_position, _audio->media_id);
+		char storage_id[MEDIA_CONTENT_UUID_SIZE+1] = {0,};
+		memset(storage_id, 0x00, sizeof(storage_id));
+
+		ret = _media_db_get_storage_id_by_media_id(_audio->media_id, storage_id);
+		media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
+
+		sql = sqlite3_mprintf(UPDATE_AV_META_FROM_MEDIA, storage_id, _audio->played_count, _audio->played_time, _audio->played_position, _audio->media_id);
 		ret = _content_query_sql(sql);
-		sqlite3_free(sql);
+		SQLITE3_SAFE_FREE(sql);
 	}
 	else
 	{

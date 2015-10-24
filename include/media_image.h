@@ -150,6 +150,8 @@ int image_meta_get_orientation(image_meta_h image, media_content_orientation_e *
  * @brief Gets the image creation time.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
+ * @remarks You must release @a date_taken using free().
+ *
  * @param[in]  image      The image metadata handle
  * @param[out] date_taken The time, when image was taken (in seconds, since the Epoch)
  *
@@ -170,7 +172,7 @@ int image_meta_get_date_taken(image_meta_h image, char **date_taken);
  *
  * @param[in]  image    The image metadata handle
  * @param[out] burst_id The ID of burst shot\ n
- *                      If @a burst_id is @c NULL, this is not burst shot.
+ *                      If @a burst_id is @c NULL, this is not burst shot
  *
  * @return @c 0 on success, 
  *         otherwise a negative error value
@@ -180,6 +182,78 @@ int image_meta_get_date_taken(image_meta_h image, char **date_taken);
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  */
 int image_meta_get_burst_id(image_meta_h image, char **burst_id);
+
+/**
+ * @brief Gets the exposure time from exif.
+ * @since_tizen 2.4
+ *
+ * @remarks @a exposure time must be released with free() by you.
+ *
+ * @param[in] media The handle to image metadata
+ * @param[out] exposure_time The value of exposure_time, getting from exif
+ *
+ * @return 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ *
+ */
+int image_meta_get_exposure_time(image_meta_h image, char **exposure_time);
+
+/**
+ * @brief Gets the fnumber from exif.
+ * @since_tizen 2.4
+ *
+ * @param[in] media The handle toimage metadata
+ * @param[out] fnumber The value of fnumber, getting from exif
+ *
+ * @return 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ *
+ */
+int image_meta_get_fnumber(image_meta_h image, double *fnumber);
+
+/**
+ * @brief Gets the iso from exif.
+ * @since_tizen 2.4
+ *
+ * @param[in] media The handle toimage metadata
+ * @param[out] iso The value of iso, getting from exif
+ *
+ * @return 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ *
+ */
+int image_meta_get_iso(image_meta_h image, int *iso);
+
+/**
+ * @brief Gets the model from exif.
+ * @since_tizen 2.4
+ *
+ * @remarks @a model must be released with free() by you.
+ *
+ * @param[in] media The handle toimage metadata
+ * @param[out] model The value of model, getting from exif
+ *
+ * @return 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ *
+ */
+int image_meta_get_model(image_meta_h image, char **model);
 
 /**
  * @brief Checks whether the media is a burst shot image.
@@ -237,6 +311,11 @@ int image_meta_set_orientation(image_meta_h image, media_content_orientation_e o
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().

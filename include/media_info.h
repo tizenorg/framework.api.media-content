@@ -43,9 +43,7 @@ extern "C" {
 /**
  * @brief  Inserts a media file into the media database.
  * @details This function inserts a media item into the content storage.
- *          Normally, inserting a media file in database is done automatically by the media server, without calling this function.
- *          This function is only called when the media server is busy and the user needs to get quick result of inserting
- *          e.g. Taking a photo while media server is busy and the user wants to see the quick snapshot of the photo taken.
+ *          When the system is restarted, even if you do not use this function, media files are inserted to content storage automatically by the media server.
  *
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
@@ -58,7 +56,8 @@ extern "C" {
  *                   You must add privilege http://tizen.org/privilege/content.write. And You add more privilege depending on your choice of contents path. \n
  *                   If you want to access only internal storage by using  this API, you should add privilege http://tizen.org/privilege/mediastorage. \n
  *                   Or if you want to access only external storage by using  this API, you shold add privilege http://tizen.org/privilege/externalstorage. \n
- *                   If you can access both storage, you must add all privilege.
+ *                   If you can access both storage, you must add all privilege. \n
+ *                   If you do not insert media item into content storage, you cannot see media files in the Application which use media database.
  *
  * @param[in]  path The path to the media file
  * @param[out] info The handle to the media info
@@ -66,8 +65,13 @@ extern "C" {
  * @return @c 0 on success, 
  *         otherwise a negative error value
  *
- * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -79,7 +83,7 @@ int media_info_insert_to_db (const char *path, media_info_h *info);
 /**
  * @brief Inserts media files into the media database, asynchronously.
  * @details This function inserts media items into the content storage.
- *          Normally, inserting a media file in database is done automatically by the media server, without calling this function.
+ *          When the system is restarted, even if you do not use this function, media files are inserted to content storage automatically by the media server.
  *          This function invokes media_insert_completed_cb() callback function when insertion to the media database is finished.
  *
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
@@ -92,7 +96,8 @@ int media_info_insert_to_db (const char *path, media_info_h *info);
  * @remarks You must add privilege http://tizen.org/privilege/content.write. And You add more privilege depending on your choice of contents path. \n
  *                   If you want to access only internal storage by using  this API, you should add privilege http://tizen.org/privilege/mediastorage. \n
  *                   Or if you want to access only external storage by using  this API, you shold add privilege http://tizen.org/privilege/externalstorage. \n
- *                   If you can access both storage, you must add all privilege.
+ *                   If you can access both storage, you must add all privilege. \n
+ *                   If you do not insert media item into content storage, you cannot see media files in the Application which use media database.
  *
  * @param[in] path_array   The path array to the media files
  * @param[in] array_length The length of the array
@@ -104,7 +109,11 @@ int media_info_insert_to_db (const char *path, media_info_h *info);
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB operation failed
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -141,7 +150,11 @@ int media_info_insert_batch_to_db(const char **path_array,unsigned int array_len
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB operation failed
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -167,8 +180,12 @@ int media_info_insert_burst_shot_to_db(const char **path_array,unsigned int arra
  * @return @c 0 on success, 
  *         otherwise a negative error value
  *
- * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -178,7 +195,7 @@ int media_info_insert_burst_shot_to_db(const char **path_array,unsigned int arra
 int media_info_delete_from_db(const char *media_id);
 
 /**
- * @brief Deletes media files from the media database. 
+ * @brief Deletes media files from the media database.
  *        The media files for deletion can be specified as a condition in a filter.
  * @details This function deletes the media items from the content storage.
  *          Normally, deleting  media files in the database are done automatically by the media server, without calling this function.
@@ -194,8 +211,12 @@ int media_info_delete_from_db(const char *media_id);
  * @return @c 0 on success, 
  *         otherwise a negative error value
  *
- * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -273,7 +294,8 @@ int media_info_clone(media_info_h *dst, media_info_h src);
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -303,8 +325,10 @@ int media_info_get_media_count_from_db(filter_h filter, int *media_count);
  *         otherwise a negative error value
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
- * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre  This function requires opened connection to content service by media_content_connect().
@@ -329,7 +353,8 @@ int media_info_foreach_media_from_db(filter_h filter, media_info_cb callback, vo
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -353,8 +378,10 @@ int media_info_get_tag_count_from_db(const char *media_id, filter_h filter, int 
  *         otherwise a negative error value
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
- * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre  This function requires opened connection to content service by media_content_connect().
@@ -378,7 +405,8 @@ int media_info_foreach_tag_from_db(const char *media_id, filter_h filter, media_
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -402,8 +430,10 @@ int media_info_get_bookmark_count_from_db(const char *media_id, filter_h filter,
  *         otherwise a negative error value
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
- * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre  This function requires opened connection to content service by media_content_connect().
@@ -623,6 +653,8 @@ int media_info_get_modified_time(media_info_h media, time_t *time);
 
 /**
  * @brief Gets the timeline of media info.
+ * @details If the image file has the creation time, the value of the timeline is the creation time.\n
+ *          Otherwise, the value of the timeline is the same as modified time.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  * @param[in]  media The media info handle
@@ -926,6 +958,25 @@ int media_info_get_age_rating(media_info_h media, char **age_rating);
 int media_info_get_keyword(media_info_h media, char **keyword);
 
 /**
+ * @brief Gets the storage id of media info.
+ * @since_tizen 2.4
+ *
+ * @remarks You must release @a storage_id using free().
+ *
+ * @param[in]  media   The media info handle
+ * @param[out] storage_id The storage id of the media info
+ *
+ * @return @c 0 on success, 
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
+ */
+int media_info_get_storage_id(media_info_h media, char **storage_id);
+
+/**
  * @brief Checks whether the media is protected via DRM.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
@@ -959,6 +1010,38 @@ int media_info_is_drm(media_info_h media, bool *is_drm);
 int media_info_get_storage_type(media_info_h media, media_content_storage_e *storage_type);
 
 /**
+ * @brief Gets number which represents how many times given content has been played.
+ * @since_tizen 2.4
+ *
+ * @param [in] media The handle to media info
+ * @param [out] count_played The counter of content played
+ *
+ * @return 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ */
+int media_info_get_played_count(media_info_h media, int *played_count);
+
+/**
+ * @brief Gets the content's played time parameter.
+ * @details Function returns content's elapsed playback time parameter as period
+ *          starting from the beginning of the track.
+ * @since_tizen 2.4
+ *
+ * @param [in] media The handle to media info
+ * @param [out] played_time The elapsed time of the content
+ *
+ * @return 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ */
+int media_info_get_played_time(media_info_h media, time_t *played_time);
+
+/**
  * @brief Gets the media info from the media database.
  *
  * @details This function creates a new media handle from the media database by the given @a media_id.
@@ -971,7 +1054,7 @@ int media_info_get_storage_type(media_info_h media, media_content_storage_e *sto
  * @param[in]  media_id The ID of media info
  * @param[out] media    The media handle associated with the media ID
  *
- * @return @c 0 on success, 
+ * @return @c 0 on success,
  *         otherwise a negative error value
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
@@ -984,6 +1067,40 @@ int media_info_get_storage_type(media_info_h media, media_content_storage_e *sto
  * @see media_info_destroy()
  */
 int media_info_get_media_from_db(const char *media_id, media_info_h *media);
+
+/**
+ * @brief Increments the played count to content meta handle.
+ * @detalis You can increase the played(opened) count of the media file.
+ * @since_tizen 2.4
+ *
+ * @param [in] media The handle to media info
+ *
+ * @return 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ *
+ * @post media_info_update_to_db()
+ */
+int media_info_increase_played_count(media_info_h media);
+
+/**
+ * @brief Sets the played time to content meta handle.
+ * @detalis You can set the latest played(opened) time of the media file. the latest played time to be set the current time on the system.
+ * @since_tizen 2.4
+ *
+ * @param [in] media The handle to media info
+ *
+ * @return 0 on success,
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ *
+ * @post media_info_update_to_db()
+ */
+int media_info_set_played_time(media_info_h media);
 
 /**
  * @brief Sets the display name of media info.
@@ -1289,6 +1406,11 @@ int media_info_set_keyword(media_info_h media, const char *keyword);
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -1331,7 +1453,11 @@ int media_info_update_to_db(media_info_h media);
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB operation failed
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -1380,8 +1506,12 @@ int media_info_set_added_time(media_info_h media, time_t added_time);
  *         otherwise a negative error value
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
- * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
- * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB operation failed
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter (Especially, if the request is duplicated, this error returns.)
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -1400,6 +1530,8 @@ int media_info_move_to_db(media_info_h media, const char* dst_path);
  * @privlevel public
  * @privilege %http://tizen.org/privilege/content.write
  *
+ * @remarks If you want to destory media handle before callback invoked, you must cancel thumbnail request by using media_info_cancel_thumbnail()
+ *
  * @param[in] media     The media info handle
  * @param[in] callback  The callback function to be invoked
  * @param[in] user_data The user data to be passed to the callback function
@@ -1408,8 +1540,12 @@ int media_info_move_to_db(media_info_h media, const char* dst_path);
  *         otherwise a negative error value
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
- * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter (Especially, if the request is duplicated, this error returns.)
- * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB operation failed
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().
@@ -1425,6 +1561,8 @@ int media_info_create_thumbnail(media_info_h media, media_thumbnail_completed_cb
  * @privlevel public
  * @privilege %http://tizen.org/privilege/content.write
  *
+ * @remarks If you request cancel for the alreay thumbnail created media, this API return MEDIA_CONTENT_ERROR_INVALID_OPERATION
+ *
  * @param[in] media The media info handle
  *
  * @return @c 0 on success, 
@@ -1433,6 +1571,7 @@ int media_info_create_thumbnail(media_info_h media, media_thumbnail_completed_cb
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
  *
  * @pre This function requires opened connection to content service by media_content_connect().
  * @see media_content_connect()

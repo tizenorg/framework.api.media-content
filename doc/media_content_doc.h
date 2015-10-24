@@ -31,6 +31,9 @@
  * The Media Content API provides functions and enumerations used in the entire Content Service.\n
  * The information about media items i.e. image, audio and video, are managed in the content database and
  * operations that involve database requires an active connection with the media content service.\n
+ * During media scanning, Media Service extract media information automatically. media information include basic file info like
+ * path, size, modified time etc and some metadata like ID3tag, EXIF, thumbnail, etc. (thumbnail extracted only in Internal and SD card storage. \n
+ * Media content services do not manage hidden files. \n
  * The API provides functions for connecting (#media_content_connect()) and disconnecting (#media_content_disconnect()) from the media content service.
  *
  * The API consists of @ref CAPI_CONTENT_MEDIA_FOLDER_MODULE,@ref CAPI_CONTENT_MEDIA_TAG_MODULE,@ref CAPI_CONTENT_MEDIA_FILTER_MODULE, @ref CAPI_CONTENT_MEDIA_INFO_MODULE API and others.
@@ -229,7 +232,50 @@
  * Similarly, call respective get function to get filter properties e.g. call #media_filter_get_condition() function 
  * to get condition of the media filter and call #media_filter_get_order() function to get order (#media_content_order_e) of the filtered items and so on.
  *
-**/
+ * @section CAPI_CONTENT_MEDIA_FILTER_MODULE_EXAMPLE Example
+ * You can set the filter as follows.
+ * @code
+ *
+ * #include <stdio.h>
+ * #include <string.h>
+ * #include <media_content.h>
+ *
+ * #define MAX_QUERY_LEN 512
+ * #define DLOG_TAG "media-content-test"
+ *
+ * filter_h g_filter = NULL;
+ *
+ * int create_filter()
+ * {
+ *     int ret = MEDIA_CONTENT_ERROR_NONE;
+ *     char condition[MAX_QUERY_LEN] = {0,};
+ *
+ *     snprintf(condition,sizeof(condition),"%s = 0",MEDIA_TYPE);
+ *
+ *     ret = media_filter_create(&g_filter);
+ *     ret = media_filter_set_condition(g_filter, condition, MEDIA_CONTENT_COLLATE_DEFAULT);
+ *     ret = media_filter_set_order(g_filter, MEDIA_CONTENT_ORDER_DESC, MEDIA_ARTIST, MEDIA_CONTENT_COLLATE_DEFAULT);
+ *
+ *     return ret;
+ * }
+ *
+ * @endcode
+ * And you can use the created filter as follows.
+ * @code
+ *
+ * int get_media_count()
+ * {
+ *     int ret = MEDIA_CONTENT_ERROR_NONE;
+ *     int media_cnt = 0;
+ *
+ *     ret = media_info_get_media_count_from_db(g_filter, &media_cnt);
+ *     dlog_print(DLOG_DEBUG, DLOG_TAG, "media count [%d]\n", media_cnt);
+ *
+ *     return ret;
+ * }
+ *
+ * @endcode
+ */
 
 
 /**
@@ -574,6 +620,22 @@
  * </table></div>
  *
  *
+ *
+ */
+
+/**
+ * @defgroup CAPI_CONTENT_MEDIA_STORAGE_MODULE Media Storage
+ * @brief The Media Storage Information API provides functions to manage storage  information on the media items.
+ *
+ * @ingroup CAPI_MEDIA_CONTENT_MODULE
+ *
+ * @section CAPI_CONTENT_MEDIA_STORAGE_MODULE_HEADER Required Header
+ *   \#include <media_content.h>
+ *
+ * @section CAPI_CONTENT_MEDIA_STORAGE_MODULE_OVERVIEW Overview
+ * A Storage allows you to manage external storage. \n
+ * The system generates the storage id when the external storage is added. And the system manages the media information in each of the storage by using storage id. \n
+ * So you can get the information from the storage that you want to view.
  *
  */
 

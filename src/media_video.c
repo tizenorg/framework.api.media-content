@@ -58,13 +58,7 @@ int video_meta_clone(video_meta_h *dst, video_meta_h src)
 	if(_src != NULL)
 	{
 		video_meta_s *_dst = (video_meta_s*)calloc(1, sizeof(video_meta_s));
-
-		if(_dst == NULL)
-		{
-
-			media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-			return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-		}
+		media_content_retvm_if(_dst == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
 
 		if(STRING_VALID(_src->media_id))
 		{
@@ -217,11 +211,8 @@ int video_meta_get_media_id(video_meta_h video, char **media_id)
 		if(STRING_VALID(_video->media_id))
 		{
 			char *new_string = strdup(_video->media_id);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*media_id = new_string;
 		}
 		else
@@ -249,11 +240,8 @@ int video_meta_get_album(video_meta_h video, char **album)
 		if(STRING_VALID(_video->album))
 		{
 			char *new_string = strdup(_video->album);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*album = new_string;
 		}
 		else
@@ -281,11 +269,8 @@ int video_meta_get_artist(video_meta_h video, char **artist)
 		if(STRING_VALID(_video->artist))
 		{
 			char *new_string = strdup(_video->artist);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*artist = new_string;
 		}
 		else
@@ -314,11 +299,8 @@ int video_meta_get_album_artist(video_meta_h video, char **album_artist)
 		if(STRING_VALID(_video->album_artist))
 		{
 			char *new_string = strdup(_video->album_artist);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*album_artist = new_string;
 		}
 		else
@@ -347,11 +329,8 @@ int video_meta_get_genre(video_meta_h video, char **genre)
 		if(STRING_VALID(_video->genre))
 		{
 			char *new_string = strdup(_video->genre);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*genre = new_string;
 		}
 		else
@@ -379,11 +358,8 @@ int video_meta_get_composer(video_meta_h video, char **composer)
 		if(STRING_VALID(_video->composer))
 		{
 			char *new_string = strdup(_video->composer);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*composer = new_string;
 		}
 		else
@@ -411,11 +387,8 @@ int video_meta_get_year(video_meta_h video, char **year)
 		if(STRING_VALID(_video->year))
 		{
 			char *new_string = strdup(_video->year);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*year = new_string;
 		}
 		else
@@ -443,11 +416,8 @@ int video_meta_get_recorded_date(video_meta_h video, char **recorded_date)
 		if(STRING_VALID(_video->recorded_date))
 		{
 			char *new_string = strdup(_video->recorded_date);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*recorded_date = new_string;
 		}
 		else
@@ -475,11 +445,8 @@ int video_meta_get_copyright(video_meta_h video, char **copyright)
 		if(STRING_VALID(_video->copyright))
 		{
 			char *new_string = strdup(_video->copyright);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*copyright = new_string;
 		}
 		else
@@ -507,11 +474,8 @@ int video_meta_get_track_num(video_meta_h video, char **track_num)
 		if(STRING_VALID(_video->track_num))
 		{
 			char *new_string = strdup(_video->track_num);
-			if(NULL == new_string)
-			{
-				media_content_error("OUT_OF_MEMORY(0x%08x)", MEDIA_CONTENT_ERROR_OUT_OF_MEMORY);
-				return MEDIA_CONTENT_ERROR_OUT_OF_MEMORY;
-			}
+			media_content_retvm_if(new_string == NULL, MEDIA_CONTENT_ERROR_OUT_OF_MEMORY, "OUT_OF_MEMORY");
+
 			*track_num = new_string;
 		}
 		else
@@ -724,9 +688,15 @@ int video_meta_update_to_db(video_meta_h video)
 
 	if(_video != NULL && STRING_VALID(_video->media_id))
 	{
-		sql = sqlite3_mprintf(UPDATE_AV_META_FROM_MEDIA, _video->played_count, _video->played_time, _video->played_position, _video->media_id);
+		char storage_id[MEDIA_CONTENT_UUID_SIZE+1] = {0,};
+		memset(storage_id, 0x00, sizeof(storage_id));
+
+		ret = _media_db_get_storage_id_by_media_id(_video->media_id, storage_id);
+		media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
+
+		sql = sqlite3_mprintf(UPDATE_AV_META_FROM_MEDIA, storage_id, _video->played_count, _video->played_time, _video->played_position, _video->media_id);
 		ret = _content_query_sql(sql);
-		sqlite3_free(sql);
+		SQLITE3_SAFE_FREE(sql);
 	}
 	else
 	{

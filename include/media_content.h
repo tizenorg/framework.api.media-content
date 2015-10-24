@@ -28,6 +28,7 @@
 #include <media_group.h>
 #include <media_playlist.h>
 #include <media_bookmark.h>
+#include <media_storage.h>
 
 #ifdef __cplusplus
 extern "C" {
@@ -101,7 +102,8 @@ int media_content_disconnect(void);
  * @remarks You must add privilege http://tizen.org/privilege/content.write. And You add more privilege depending on your choice of contents path. \n
  *                   If you want to access only internal storage by using  this API, you should add privilege http://tizen.org/privilege/mediastorage. \n
  *                   Or if you want to access only external storage by using  this API, you shold add privilege http://tizen.org/privilege/externalstorage. \n
- *                   If you can access both storage, you must add all privilege.
+ *                   If you can access both storage, you must add all privilege. \n
+ *                   If you do not update media item in content storage, you cannot see proper media files in the Application which use media database.
  *
  * @param[in] path The file path
  *
@@ -133,7 +135,8 @@ int media_content_scan_file(const char *path);
  * @remarks You must add privilege http://tizen.org/privilege/content.write. And You add more privilege depending on your choice of contents path. \n
  *                   If you want to access only internal storage by using  this API, you should add privilege http://tizen.org/privilege/mediastorage. \n
  *                   Or if you want to access only external storage by using  this API, you shold add privilege http://tizen.org/privilege/externalstorage. \n
- *                   If you can access both storage, you must add all privilege.
+ *                   If you can access both storage, you must add all privilege. \n
+ *                   If you do not update media folder or item in content storage, you cannot see proper folder and media files in the Application which use media database.
  *
  * @param[in] path         The folder path
  * @param[in] is_recursive Set @c true to scan recursively subdirectories,
@@ -152,6 +155,22 @@ int media_content_scan_file(const char *path);
 int media_content_scan_folder(const char *path, bool is_recursive, media_scan_completed_cb callback, void *user_data);
 
 /**
+ * @brief Requests to cancel the media folder scanning.
+ * @since_tizen 2.4
+ *
+ * @param[in] path         The folder path
+ *
+ * @return @c 0 on success, 
+ *         otherwise a negative error value
+ *
+ * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ *
+ * @pre media_content_scan_folder()
+ */
+int media_content_cancel_scan_folder(const char *path);
+
+/**
  * @brief Subscribes notifications of the media DB change.
  * @details This function subscribes notifications of the media DB change which are published by the media server or other apps.
  *          media_content_db_update_cb() function will be called when notification of the media DB change is subscribed.
@@ -165,6 +184,9 @@ int media_content_scan_folder(const char *path, bool is_recursive, media_scan_co
  *         otherwise a negative error value
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE Successful
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @see media_content_db_update_cb()

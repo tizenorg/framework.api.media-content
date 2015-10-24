@@ -23,7 +23,7 @@
 #include <media_info_private.h>
 #include <media_content_type.h>
 
-int _media_util_check_file(const char *path)
+int _media_util_check_file_exist(const char *path)
 {
 	int exist;
 
@@ -44,33 +44,45 @@ int _media_util_check_file(const char *path)
 	return MEDIA_CONTENT_ERROR_NONE;
 }
 
+int _media_util_check_ignore_file(const char *path, bool *ignore)
+{
+	media_content_retvm_if(!STRING_VALID(path), MEDIA_CONTENT_ERROR_INVALID_PARAMETER, "invalid path");
+
+	*ignore = FALSE;
+
+	if(strstr(path, "/.") != NULL)
+	{
+		*ignore = TRUE;
+		media_content_error("hidden path");
+		media_content_sec_debug("path : %s", path);
+	}
+
+	return MEDIA_CONTENT_ERROR_NONE;
+}
+
 int _media_util_check_ignore_dir(const char *dir_path, bool *ignore)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	media_svc_storage_type_e storage_type = 0;
-	char *scan_ignore = ".scan_ignore";
+	const char *scan_ignore = ".scan_ignore";
 	bool find = false;
 
 	media_content_sec_debug("dir_path : %s", dir_path);
 
-	if(!STRING_VALID(dir_path))
-	{
-		media_content_error("INVALID_PARAMETER(0x%08x)", MEDIA_CONTENT_ERROR_INVALID_PARAMETER);
-		return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
-	}
+	media_content_retvm_if(!STRING_VALID(dir_path), MEDIA_CONTENT_ERROR_INVALID_PARAMETER, "invalid dir_path");
 
 	*ignore = FALSE;
 	/*1. Check Hidden Directory*/
-	if(strstr(dir_path, "/."))
+	if(strstr(dir_path, "/.") != NULL)
 	{
 		*ignore = TRUE;
-		media_content_info("hidden path");
+		media_content_error("hidden path");
 		return MEDIA_CONTENT_ERROR_NONE;
 	}
 
 	/*2. Check Scan Ignore Directory*/
 	ret = media_svc_get_storage_type(dir_path, &storage_type);
-	if(ret != MEDIA_INFO_ERROR_NONE)
+	if(ret != MS_MEDIA_ERR_NONE)
 	{
 		media_content_error("media_svc_get_storage_type failed : %d", ret);
 		return _content_error_capi(MEDIA_CONTENT_TYPE, ret);
@@ -87,11 +99,14 @@ int _media_util_check_ignore_dir(const char *dir_path, bool *ignore)
 	while(STRING_VALID(search_path))
 	{
 		dp = opendir(search_path);
-		if(dp == NULL)
-		{
-			media_content_error("Fail Open Directory");
-			return MEDIA_CONTENT_ERROR_INVALID_OPERATION;
+		if (dp == NULL) {
+			*ignore = TRUE;
+			media_content_error("Open Directory fail");
+			media_content_sec_debug("Open fail path[%s]", search_path);
+			return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
 		}
+
+		media_content_retvm_if(dp == NULL, MEDIA_CONTENT_ERROR_INVALID_OPERATION, "Open Directory fail");
 
 		while (!readdir_r(dp, &entry, &result))
 		{
@@ -100,7 +115,7 @@ int _media_util_check_ignore_dir(const char *dir_path, bool *ignore)
 
 			if(STRING_VALID(entry.d_name) && (strcmp(entry.d_name, scan_ignore) == 0))
 			{
-				media_content_info("Find Ignore path");
+				media_content_error("Find Ignore path");
 				media_content_sec_debug("Ignore path[%s]", search_path);
 				find = TRUE;
 				break;
@@ -125,13 +140,25 @@ int _media_util_check_ignore_dir(const char *dir_path, bool *ignore)
 			/*If root path, Stop Scanning*/
 			if((storage_type == MEDIA_SVC_STORAGE_INTERNAL) && (strcmp(search_path, MEDIA_ROOT_PATH_INTERNAL) == 0))
 			{
-				//media_content_debug("Internal root path. Stop Scanning. Not found Ignore information");
 				break;
 			}
 			else if((storage_type == MEDIA_SVC_STORAGE_EXTERNAL) && (strcmp(search_path, MEDIA_ROOT_PATH_SDCARD) == 0))
 			{
-				//media_content_debug("Enternal root path. Stop Scanning. Not found Ignore information");
 				break;
+			}
+			else if(storage_type == MEDIA_SVC_STORAGE_EXTERNAL_USB)
+			{
+				char *parent_folder_path = NULL;
+				bool is_root = FALSE;
+
+				parent_folder_path = g_path_get_dirname(search_path);
+				if (strcmp(search_path, MEDIA_ROOT_PATH_USB) == 0)
+					is_root = TRUE;
+
+				SAFE_FREE(parent_folder_path);
+
+				if (is_root == TRUE)
+					break;
 			}
 
 			leaf_path = strrchr(search_path, '/');

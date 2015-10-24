@@ -1,6 +1,6 @@
 Name:       capi-content-media-content
 Summary:    A Media content library in SLP C API
-Version: 0.2.136
+Version: 0.2.154
 Release:    0
 Group:      System/Libraries
 License:    Apache-2.0
@@ -11,7 +11,6 @@ BuildRequires:  pkgconfig(capi-base-common)
 BuildRequires:  pkgconfig(libmedia-service)
 BuildRequires:  pkgconfig(media-thumbnail)
 BuildRequires:  pkgconfig(libmedia-utils)
-BuildRequires:  pkgconfig(icu-i18n)
 BuildRequires:  pkgconfig(vconf)
 
 
@@ -33,7 +32,9 @@ Requires: %{name} = %{version}-%{release}
 
 
 %build
-
+export CFLAGS+=" -Wextra -Wno-array-bounds"
+export CFLAGS+=" -Wno-ignored-qualifiers -Wno-unused-parameter -Wshadow"
+export CFLAGS+=" -Wwrite-strings -Wswitch-default"
 MAJORVER=`echo %{version} | awk 'BEGIN {FS="."}{print $1}'`
 
 %if 0%{?sec_build_binary_debug_enable}
@@ -69,5 +70,3 @@ cp -rf %{_builddir}/%{name}-%{version}/LICENSE.APLv2.0 %{buildroot}/%{_datadir}/
 %{_includedir}/media-content/*.h
 %{_libdir}/pkgconfig/*.pc
 %{_libdir}/libcapi-content-media-content.so
-
-

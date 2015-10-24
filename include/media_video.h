@@ -356,6 +356,7 @@ int video_meta_get_width(video_meta_h video, int *width);
 int video_meta_get_height(video_meta_h video, int *height);
 
 /**
+ * @deprecated Deprecated since 2.4. [Use media_info_get_played_count() instead]
  * @brief Gets the played count of the video.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
@@ -372,6 +373,7 @@ int video_meta_get_height(video_meta_h video, int *height);
 int video_meta_get_played_count(video_meta_h video, int *played_count);
 
 /**
+ * @deprecated Deprecated since 2.4. [Use media_info_get_played_time() instead]
  * @brief Gets the last played time parameter of the video.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
@@ -388,6 +390,7 @@ int video_meta_get_played_count(video_meta_h video, int *played_count);
 int video_meta_get_played_time(video_meta_h video, time_t *played_time);
 
 /**
+ * @deprecated Deprecated since 2.4.
  * @brief Gets the position played parameter of the video.
  * @details This function returns the elapsed playback time parameter of the video as period
  *          starting from the beginning of the movie.
@@ -407,6 +410,7 @@ int video_meta_get_played_time(video_meta_h video, time_t *played_time);
 int video_meta_get_played_position(video_meta_h video, int *played_position);
 
 /**
+ * @deprecated Deprecated since 2.4. [Use media_info_increase_played_count() instead]
  * @brief Sets the played count of the video.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
@@ -425,6 +429,7 @@ int video_meta_get_played_position(video_meta_h video, int *played_position);
 int video_meta_set_played_count(video_meta_h video, int played_count);
 
 /**
+ * @deprecated Deprecated since 2.4. [Use media_info_set_played_time() instead]
  * @brief Sets the time last played parameter of the video.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
@@ -443,11 +448,14 @@ int video_meta_set_played_count(video_meta_h video, int played_count);
 int video_meta_set_played_time(video_meta_h video, time_t played_time);
 
 /**
+ * @deprecated Deprecated since 2.4.
  * @brief Sets the position played parameter of the video.
  * @details This function returns video's elapsed playback time parameter as period
  *          starting from the beginning of the movie.
  *
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
+ *
+ * @remarks  It is NOT recommended to use this attribute for your application-specific purpose because this attribute can be overwritten by other applications (even 0).
  *
  * @param[in] video           The video metadata handle
  * @param[in] played_position The position from the beginning of the video (in milliseconds)
@@ -484,6 +492,11 @@ int video_meta_set_played_position(video_meta_h video, int played_position);
  *
  * @retval #MEDIA_CONTENT_ERROR_NONE              Successful
  * @retval #MEDIA_CONTENT_ERROR_INVALID_PARAMETER Invalid parameter
+ * @retval #MEDIA_CONTENT_ERROR_OUT_OF_MEMORY     Out of memory
+ * @retval #MEDIA_CONTENT_ERROR_INVALID_OPERATION Invalid operation
+ * @retval #MEDIA_CONTENT_ERROR_DB_FAILED         DB Operation failed
+ * @retval #MEDIA_CONTENT_ERROR_DB_BUSY           DB Operation busy
+ * @retval #MEDIA_CONTENT_ERROR_NETWORK           Network fail
  * @retval #MEDIA_CONTENT_ERROR_PERMISSION_DENIED Permission denied
  *
  * @pre This function requires opened connection to content service by media_content_connect().

@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <media_content.h>
+#include <media_content_internal.h>
 #include <media_info_private.h>
 #include <dlog.h>
 #include <pthread.h>
@@ -31,9 +32,9 @@ GMainLoop *g_loop = NULL;
 static int g_cnt = 0;
 static int g_media_cnt = 0;
 
-#define test_audio_id	"0f999626-6218-450c-a4ad-181a3bab6ebf"
-#define test_video_id	"c1a92494-cc5b-4d74-aa7d-253199234548"
-#define test_image_id "db1c184c-6f31-43b4-b924-8c00ac5b6197"
+#define test_audio_id	"3b77ea3b-6279-433f-8894-d078273d2f03"
+#define test_video_id	"053f178a-7a4c-4f8c-a16e-67ba16aeeb26"
+#define test_image_id "45597eec-b896-4d29-afe4-5cfa99f85674"
 media_folder_h g_folder = NULL;
 
 bool get_audio_meta(audio_meta_h audio)
@@ -536,14 +537,15 @@ bool media_item_cb(media_info_h media, void *user_data)
 
 bool folder_list_cb(media_folder_h folder, void *user_data)
 {
-	int item_count;
+	int item_count = 0;
 	char *folder_id = NULL;
-	char *folder_path = NULL;
-	char *folder_name = NULL;
+	char *str_val = NULL;
+	int int_val = -1;
 	media_content_storage_e storage_type;
 	bool ret;
 	media_folder_h *_folder = (media_folder_h*)user_data;
 
+	media_content_debug("===========================");
 	if(folder != NULL)
 	{
 		if(_folder != NULL)
@@ -556,40 +558,60 @@ bool folder_list_cb(media_folder_h folder, void *user_data)
 		}
 		media_content_debug("folder_id = [%s]", folder_id);
 
-		if(media_folder_get_path(folder, &folder_path) != MEDIA_CONTENT_ERROR_NONE)
+		if(media_folder_get_parent_folder_id(folder, &str_val) != MEDIA_CONTENT_ERROR_NONE)
+		{
+			SAFE_FREE(folder_id);
+			media_content_error("[ERROR] media_folder_get_parent_folder_id is failed");
+			return false;
+		}
+		media_content_debug("parent_folder_id = [%s]", str_val);
+
+		if(media_folder_get_path(folder, &str_val) != MEDIA_CONTENT_ERROR_NONE)
 		{
 			SAFE_FREE(folder_id);
 			media_content_error("[ERROR] media_folder_get_path is failed");
 			return false;
 		}
-		media_content_debug("folder_path = [%s]", folder_path);
-		SAFE_FREE(folder_path);
+		media_content_debug("folder_path = [%s]", str_val);
+		SAFE_FREE(str_val);
 
-		if(media_folder_get_name(folder, &folder_name) != MEDIA_CONTENT_ERROR_NONE)
+		if(media_folder_get_name(folder, &str_val) != MEDIA_CONTENT_ERROR_NONE)
 		{
 			SAFE_FREE(folder_id);
-			SAFE_FREE(folder_path);
 			media_content_error("[ERROR] media_folder_get_name is failed");
 			return false;
 		}
-		media_content_debug("folder_name = [%s]", folder_name);
-		SAFE_FREE(folder_name);
+		media_content_debug("folder_name = [%s]", str_val);
+		SAFE_FREE(str_val);
 
 		if(media_folder_get_storage_type(folder, &storage_type) != MEDIA_CONTENT_ERROR_NONE)
 		{
 			SAFE_FREE(folder_id);
-			SAFE_FREE(folder_path);
-			SAFE_FREE(folder_name);
 			media_content_error("[ERROR] media_folder_get_storage_type is failed");
 			return false;
 		}
 		media_content_debug("storage_type = [%d]", storage_type);
 
+		if(media_folder_get_storage_id(folder, &str_val) != MEDIA_CONTENT_ERROR_NONE)
+		{
+			SAFE_FREE(folder_id);
+			media_content_error("[ERROR] media_folder_get_name is failed");
+			return false;
+		}
+		media_content_debug("storage_id = [%s]", str_val);
+		SAFE_FREE(str_val);
+
+		if(media_folder_get_order(folder, &int_val) != MEDIA_CONTENT_ERROR_NONE)
+		{
+			SAFE_FREE(folder_id);
+			media_content_error("[ERROR] media_folder_get_order is failed");
+			return false;
+		}
+		media_content_debug("folder_order = [%d]", int_val);
+#if 1
 		if(media_folder_get_media_count_from_db(folder_id, g_filter, &item_count) != MEDIA_CONTENT_ERROR_NONE)
 		{
 			SAFE_FREE(folder_id);
-			SAFE_FREE(folder_path);
-			SAFE_FREE(folder_name);
 			media_content_error("[ERROR] media_folder_get_media_count_from_db is failed");
 			return false;
 		}
@@ -597,16 +619,11 @@ bool folder_list_cb(media_folder_h folder, void *user_data)
 		if(media_folder_foreach_media_from_db(folder_id, g_filter, media_item_cb, NULL) != MEDIA_CONTENT_ERROR_NONE)
 		{
 			SAFE_FREE(folder_id);
-			SAFE_FREE(folder_path);
-			SAFE_FREE(folder_name);
 			media_content_error("[ERROR] media_folder_foreach_media_from_db is failed");
 			return false;
 		}
-
+#endif
 		SAFE_FREE(folder_id);
-		SAFE_FREE(folder_path);
-		SAFE_FREE(folder_name);
-
 		ret = true;
 	}
 	else
@@ -777,7 +794,7 @@ bool album_list_cb(media_album_h album, void *user_data)
 	filter_h filter = NULL;
 
 	/*Set Filter*/
-	char *condition = "MEDIA_TYPE=3";	/*MEDIA_TYPE 0-image, 1-video, 2-sound, 3-music, 4-other*/
+	const char *condition = "MEDIA_TYPE=3";	/*MEDIA_TYPE 0-image, 1-video, 2-sound, 3-music, 4-other*/
 
 	ret = media_filter_create(&filter);
 	if(ret != MEDIA_CONTENT_ERROR_NONE) {
@@ -897,8 +914,8 @@ int test_filter_create(void)
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 
 	/* Filter for media */
-	char *condition = "MEDIA_TYPE=3";	/*MEDIA_TYPE 0-image, 1-video, 2-sound, 3-music, 4-other*/
-	//char *condition = "MEDIA_TYPE IS NOT 0 AND MEDIA_DESCRIPTION IS NOT NULL";	/*MEDIA_TYPE 0-image, 1-video, 2-sound, 3-music, 4-other*/
+	const char *condition = "MEDIA_TYPE=3";	/*MEDIA_TYPE 0-image, 1-video, 2-sound, 3-music, 4-other*/
+	//const char *condition = "MEDIA_TYPE IS NOT 0 AND MEDIA_DESCRIPTION IS NOT NULL";	/*MEDIA_TYPE 0-image, 1-video, 2-sound, 3-music, 4-other*/
 
 	ret = media_filter_create(&g_filter);
 
@@ -921,16 +938,17 @@ int test_filter_create(void)
 	 */
 	/* Able to set multi column to set order */
 	//ret = media_filter_set_order(g_filter, MEDIA_CONTENT_ORDER_ASC, "MEDIA_MODIFIED_TIME, MEDIA_DISPLAY_NAME", MEDIA_CONTENT_COLLATE_DEFAULT);
-	ret = media_filter_set_order(g_filter, MEDIA_CONTENT_ORDER_ASC, MEDIA_ARTIST, MEDIA_CONTENT_COLLATE_DEFAULT);
+	//ret = media_filter_set_order(g_filter, MEDIA_CONTENT_ORDER_ASC, MEDIA_ARTIST, MEDIA_CONTENT_COLLATE_DEFAULT);
 	//ret = media_filter_set_order(g_filter, MEDIA_CONTENT_ORDER_ASC, MEDIA_TRACK_NUM_INT, MEDIA_CONTENT_COLLATE_DEFAULT);
+	//ret = media_filter_set_storage(g_filter, "cfbf3d2c-71c5-4611-bccc-7cbac890146e");
 
 	/* Filter for group */
-	char *g_condition = "TAG_NAME like \"\%my\%\"";
-	//char *g_condition = "BOOKMARK_MARKED_TIME > 300";
+	//const  char *g_condition = "TAG_NAME like \"\%my\%\"";
+	//const  char *g_condition = "BOOKMARK_MARKED_TIME > 300";
 
 	ret = media_filter_create(&g_filter_g);
 
-	ret = media_filter_set_condition(g_filter_g, g_condition, MEDIA_CONTENT_COLLATE_DEFAULT);
+	//ret = media_filter_set_condition(g_filter_g, g_condition, MEDIA_CONTENT_COLLATE_DEFAULT);
 	ret = media_filter_set_order(g_filter_g, MEDIA_CONTENT_ORDER_DESC, TAG_NAME, MEDIA_CONTENT_COLLATE_DEFAULT);
 
 	return ret;
@@ -968,7 +986,7 @@ int test_connect_database(void)
 int test_gallery_scenario(void)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
-	int i;
+	unsigned int i = 0;
 	filter_h filter = NULL;
 
 	int count;
@@ -1002,7 +1020,6 @@ int test_gallery_scenario(void)
 			media_content_debug("folder_id [%d] : %s", i, folder_id);
 			media_content_debug("folder_name [%d] : %s", i, folder_name);
 			media_content_debug("folder_path [%d] : %s", i, folder_path);
-
 
 			ret = media_folder_get_media_count_from_db(folder_id, filter, &count);
 			/* User should free these string */
@@ -1172,7 +1189,7 @@ int test_gallery_scenario(void)
 	GList *item_list = NULL;
 
 	for(i = 0; i < g_list_length(folder_list); i++) {
-		int j = 0;
+		unsigned int j = 0;
 		char *folder_id = NULL;
 		char *folder_name = NULL;
 		folder_handle = (media_folder_h)g_list_nth_data(folder_list, i);
@@ -1296,7 +1313,7 @@ int test_gallery_scenario(void)
 					} else {
 						media_content_debug("media_info_foreach_bookmark_from_db success");
 
-						int k = 0;
+						unsigned int k = 0;
 
 						for(k = 0; k < g_list_length(bm_list); k++) {
 							bm_handle = (media_bookmark_h)g_list_nth_data(bm_list, k);
@@ -1315,7 +1332,7 @@ int test_gallery_scenario(void)
 						}
 
 						/* Remove bookmark list */
-						int l = 0;
+						unsigned int l = 0;
 						if(bm_list) {
 							for(l = 0; l < g_list_length(bm_list); l++) {
 								bm_handle = (media_bookmark_h)g_list_nth_data(bm_list, l);
@@ -1365,7 +1382,7 @@ int test_gallery_scenario(void)
 				return -1;
 			} else {
 				media_content_error("media_tag_foreach_media_from_db success");
-				int j = 0;
+				unsigned int j = 0;
 				media_info_h tag_media_handle;
 				char *media_id = NULL;
 				char *media_name = NULL;
@@ -1469,7 +1486,7 @@ int test_get_all_music_files(void)
 	filter_h filter;
 
 	/*Set Filter*/
-	char *condition = "MEDIA_TYPE=3";	/*0-image, 1-video, 2-sound, 3-music, 4-other*/
+	const char *condition = "MEDIA_TYPE=3";	/*0-image, 1-video, 2-sound, 3-music, 4-other*/
 
 	ret = media_filter_create(&filter);
 	if(ret != MEDIA_CONTENT_ERROR_NONE) {
@@ -1578,10 +1595,10 @@ int test_media_info_operation_2(void)
 int test_folder_operation(void)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
-	filter_h filter;
+	filter_h filter = NULL;
 	media_folder_h folder = NULL;
 	char *folder_id = NULL;
-	int folder_count = 0;
+	int count = 0;
 
 	media_content_debug("\n============Folder Test============\n\n");
 
@@ -1597,14 +1614,17 @@ int test_folder_operation(void)
 	media_filter_set_condition(filter, "(MEDIA_TYPE = 0 or MEDIA_TYPE = 1) and MEDIA_STORAGE_TYPE=0", MEDIA_CONTENT_COLLATE_DEFAULT);	/*MEDIA_TYPE 0-image, 1-video, 2-sound, 3-music, 4-other*/
 	media_filter_set_offset(filter, 0,5);
 	media_filter_set_order(filter,MEDIA_CONTENT_ORDER_DESC, MEDIA_PATH, MEDIA_CONTENT_COLLATE_NOCASE);
+	//media_filter_set_storage(filter, "cfbf3d2c-71c5-4611-bccc-7cbac890146e");
+	media_filter_set_storage(filter, "media");
 
-	ret = media_folder_get_folder_count_from_db(filter, &folder_count);
-	media_content_debug("Folder count : %d", folder_count);
+	ret = media_folder_get_folder_count_from_db(filter, &count);
+	media_content_debug("Folder count : [%d]", count);
 
 	ret = media_folder_foreach_folder_from_db(filter, folder_list_cb, &folder);
-
+#if 1
 	//test.3 get the media list in first folder
 	filter_h m_filter = NULL;
+
 	ret = media_filter_create(&m_filter);
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 	{
@@ -1618,21 +1638,15 @@ int test_folder_operation(void)
 	media_filter_set_offset(m_filter, 0,5);
 	media_filter_set_order(m_filter,MEDIA_CONTENT_ORDER_DESC, MEDIA_PATH, MEDIA_CONTENT_COLLATE_NOCASE);
 
-	media_folder_get_folder_id(folder, &folder_id);
-	media_content_debug("folder_id : %s", folder_id);
-
 	ret = media_folder_foreach_media_from_db(folder_id, m_filter, media_item_cb, NULL);
-
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
-	{
 		media_content_error("[ERROR] media_folder_foreach_media_from_db is failed, error code : %d", ret);
-	}
 
 	media_filter_destroy(filter);
 	media_filter_destroy(m_filter);
 
 	test_filter_destroy();
-
+#endif
 	/* fix prevent: Resource Leak */
 	SAFE_FREE(folder_id);
 
@@ -1644,6 +1658,7 @@ bool folder_update_cb(media_folder_h folder, void *user_data)
 	char *folder_id = NULL;
 	char *folder_path = NULL;
 	char *folder_name = NULL;
+	int folder_order = -1;
 	bool ret = true;
 
 	if(folder != NULL)
@@ -1662,6 +1677,10 @@ bool folder_update_cb(media_folder_h folder, void *user_data)
 		media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
 		media_content_debug("folder_name = [%s]", folder_name);
 		SAFE_FREE(folder_name);
+
+		ret = media_folder_get_order(folder, &folder_order);
+		media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
+		media_content_debug("folder_order = [%d]", folder_order);
 
 		ret = media_folder_clone(&g_folder, folder);
 		media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
@@ -1688,7 +1707,8 @@ int test_folder_update(void)
 	ret = media_filter_create(&filter);
 	media_content_retv_if(ret != MEDIA_CONTENT_ERROR_NONE, ret);
 
-	media_filter_set_condition(filter, "MEDIA_TYPE=0 and MEDIA_STORAGE_TYPE=0", MEDIA_CONTENT_COLLATE_DEFAULT);	/*MEDIA_TYPE 0-image, 1-video, 2-sound, 3-music, 4-other*/
+	ret = media_filter_set_condition(filter, "MEDIA_TYPE=0 and MEDIA_STORAGE_TYPE=0", MEDIA_CONTENT_COLLATE_DEFAULT);	/*MEDIA_TYPE 0-image, 1-video, 2-sound, 3-music, 4-other*/
+	ret = media_filter_set_order(filter, MEDIA_CONTENT_ORDER_DESC, FOLDER_ORDER, MEDIA_CONTENT_COLLATE_NOCASE);
 
 	ret = media_folder_get_folder_count_from_db(filter, &folder_count);
 
@@ -1699,6 +1719,8 @@ int test_folder_update(void)
 	media_filter_destroy(filter);
 
 	ret = media_folder_set_name(g_folder, "test_folder");
+
+	ret = media_folder_set_order(g_folder, 200);
 
 	ret = media_folder_update_to_db(g_folder);
 
@@ -1713,12 +1735,13 @@ int test_playlist_operation(void)
 	media_playlist_h playlist_1 = NULL;
 	media_playlist_h playlist_2 = NULL;
 	media_playlist_h playlist_3 = NULL;
+	media_playlist_h playlist_4 = NULL;
 	int playlist_id_1 = 0;
 	int playlist_id_2 = 0;
 	int playlist_id_3 = 0;
-	char *playlist_name_1 = "myPlaylist_1";
-	char *playlist_name_2 = "myPlaylist_2";
-	char *playlist_name_3 = "myPlaylist_3";
+	const char *playlist_name_1 = "myPlaylist_1";
+	const char *playlist_name_2 = "myPlaylist_2";
+	const char *playlist_name_3 = "myPlaylist_3";
 	int playlist_count = 0;
 	int media_count = 0;
 	int order_1 = 0;
@@ -1733,7 +1756,7 @@ int test_playlist_operation(void)
 
 	/* Filter for playlist */
 
-	char *condition = "(MEDIA_TYPE=1 or MEDIA_TYPE=3)";	/*0-image, 1-video, 2-sound, 3-music, 4-other*/
+	const char *condition = "(MEDIA_TYPE=1 or MEDIA_TYPE=3)";	/*0-image, 1-video, 2-sound, 3-music, 4-other*/
 
 	ret = media_filter_create(&filter);
 	ret = media_filter_set_condition(filter, condition, MEDIA_CONTENT_COLLATE_NOCASE);
@@ -1782,6 +1805,10 @@ int test_playlist_operation(void)
 	media_content_debug("playlist_id_1 [%d]", playlist_id_1);
 	media_content_debug("playlist_id_2 [%d]", playlist_id_2);
 	media_content_debug("playlist_id_3 [%d]", playlist_id_3);
+
+	/* Export and import playlist */
+	media_playlist_export_to_file(playlist_3, "/opt/usr/media/Music/playlist.m3u");
+	media_playlist_import_from_file( "/opt/usr/media/Music/playlist.m3u", "playlist_4", &playlist_4);
 
 	/* Filter for media*/
 	ret = media_filter_create(&m_filter);
@@ -1852,6 +1879,8 @@ int test_playlist_operation(void)
 		media_playlist_destroy(playlist_2);
 	if(playlist_3 != NULL)
 		media_playlist_destroy(playlist_3);
+	if(playlist_4 != NULL)
+		media_playlist_destroy(playlist_4);
 
 	g_list_free(playlist_id_list);
 	g_list_free(playlist_member_id_list);
@@ -1874,16 +1903,16 @@ int test_tag_operation(void)
 	int tag_id_1 = 0;
 	int tag_id_2 = 0;
 	int tag_id_3 = 0;
-	char *tag_name_1 = "myTag_1";
-	char *tag_name_2 = "myTag_2";
-	char *tag_name_3 = "myTag_3";
+	const char *tag_name_1 = "myTag_1";
+	const char *tag_name_2 = "myTag_2";
+	const char *tag_name_3 = "myTag_3";
 	int tag_count = 0;
 	int media_count = 0;
 	filter_h filter;
 
 	media_content_debug("\n============Tag Test============\n\n");
 
-	char *g_condition = "TAG_NAME like \"%%my%%\"";
+	const char *g_condition = "TAG_NAME like \"%%my%%\"";
 
 	ret = media_filter_create(&filter);
 
@@ -1977,7 +2006,7 @@ int test_tag_operation(void)
 	ret = media_tag_add_media(tag_2, test_video_id);
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		media_content_error("error media_tag_add_media : [%d]", ret);
-	ret = media_tag_set_name(tag_2, "test_tag");
+	ret = media_tag_set_name(tag_2, (char *)"test_tag");
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		media_content_error("error media_tag_set_name : [%d]", ret);
 	ret = media_tag_update_to_db(tag_2);
@@ -2020,7 +2049,7 @@ int test_bookmark_operation(void)
 
 	media_content_debug("\n============Bookmark Test============\n\n");
 
-	char *g_condition = "BOOKMARK_MARKED_TIME > 300";
+	const char *g_condition = "BOOKMARK_MARKED_TIME > 300";
 
 	ret = media_filter_create(&filter);
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
@@ -2035,7 +2064,7 @@ int test_bookmark_operation(void)
 		media_content_error("error media_filter_set_order : [%d]", ret);
 
 	//insert bookmark to video
-	char *thumbnail_path1 = "/opt/usr/media/Images and videos/My video clips/teat11.jpg";
+	const char *thumbnail_path1 = "/opt/usr/media/Images and videos/My video clips/teat11.jpg";
 	ret = media_bookmark_insert_to_db(test_video_id, 400, thumbnail_path1);
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		media_content_error("error media_bookmark_insert_to_db : [%d]", ret);
@@ -2066,7 +2095,7 @@ int test_album_list(void)
 	filter_h filter;
 
 	/*Set Filter*/
-	char *condition = "MEDIA_TYPE=3";	/*0-image, 1-video, 2-sound, 3-music, 4-other*/
+	const char *condition = "MEDIA_TYPE=3";	/*0-image, 1-video, 2-sound, 3-music, 4-other*/
 
 	ret = media_filter_create(&filter);
 	if(ret != MEDIA_CONTENT_ERROR_NONE) {
@@ -2140,7 +2169,7 @@ int test_group_operation(void)
 int test_update_operation()
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
-	int i;
+	unsigned int i = 0;
 	media_info_h media_handle = NULL;
 	GList *all_item_list = NULL;
 
@@ -2251,8 +2280,8 @@ int test_update_operation()
 int test_insert(void)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
-	char *path = "/opt/usr/media/Images/Default.jpg";
-	//char *path = "/opt/usr/media/Others/other.txt";
+	const char *path = "/opt/usr/media/Images/Default.jpg";
+	//const char *path = "/opt/usr/media/Others/other.txt";
 	//char *path = NULL;
 	media_info_h media_item = NULL;
 	media_content_debug("\n============DB Insert Test============\n\n");
@@ -2297,7 +2326,7 @@ int test_move(void)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	const char *move_media_id = "60aea677-4742-408e-b5f7-f2628062d06d";
-	char *dst_path = "/opt/usr/media/Images/XX/Default1.jpg";
+	const char *dst_path = "/opt/usr/media/Images/XX/Default1.jpg";
 	media_info_h move_media = NULL;
 
 	ret = media_info_get_media_from_db(move_media_id, &move_media);
@@ -2512,17 +2541,21 @@ int test_request_update_db(void)
 {
 	int ret = MEDIA_CONTENT_ERROR_NONE;
 	media_info_h media = NULL;
+	char *content_name = NULL;
+	bool favorite = FALSE;
 
 	//get the content of Over the horizon
-	ret = media_info_get_media_from_db("0f999626-6218-450c-a4ad-181a3bab6ebf", &media);
+	ret = media_info_get_media_from_db("71b19196-5b38-4ab1-ab34-bfe05c369614", &media);
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		media_content_error("media_info_get_media_from_db failed: %d", ret);
-
-	test_disconnect_database();
 
 	ret = media_info_set_content_name(media, "TEST_content_name");
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		media_content_error("media_info_set_content_name failed: %d", ret);
+
+	ret = media_info_set_favorite(media, TRUE);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+		media_content_error("media_info_set_favorite failed: %d", ret);
 
 	ret = media_info_update_to_db(media);
 	if(ret == MEDIA_CONTENT_ERROR_NONE)
@@ -2532,6 +2565,27 @@ int test_request_update_db(void)
 
 	if(media != NULL)
 		media_info_destroy(media);
+
+	/*get the updated value*/
+	ret = media_info_get_media_from_db("71b19196-5b38-4ab1-ab34-bfe05c369614", &media);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+		media_content_error("media_info_get_media_from_db failed: %d", ret);
+
+	ret = media_info_get_content_name(media, &content_name);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+		media_content_error("media_info_get_content_name failed: %d", ret);
+	else
+		media_content_debug("content name [%s]", content_name);
+
+	SAFE_FREE(content_name);
+
+	ret = media_info_get_favorite(media, &favorite);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+		media_content_error("media_info_get_favorite failed: %d", ret);
+	else
+		media_content_debug("favorite [%d]", favorite);
+
+	ret = media_info_destroy(media);
 
 	return ret;
 }
@@ -2735,7 +2789,7 @@ int test_batch_operations()
 	}
 
 	filter_h filter;
-	char *condition = "MEDIA_PATH LIKE \'/opt/usr/media/test/image%%jpg\'";
+	const char *condition = "MEDIA_PATH LIKE \'/opt/usr/media/test/image%%jpg\'";
 
 	ret = media_filter_create(&filter);
 	if(ret != MEDIA_CONTENT_ERROR_NONE) {
@@ -2834,8 +2888,11 @@ gboolean test_scan_dir_start(gpointer data)
 	int ret = -1;
 
 	const char *dir_path = "/opt/usr/media";
+	const char *dir_path_2 = "/opt/usr/media/Images";
 
 	ret = media_content_scan_folder(dir_path, TRUE, _scan_cb, NULL);
+
+	ret = media_content_scan_folder(dir_path_2, TRUE, _scan_cb, NULL);
 
 	if(ret != MEDIA_CONTENT_ERROR_NONE) {
 		media_content_error("Fail to test_scan_dir_start : %d", ret);
@@ -2845,7 +2902,23 @@ gboolean test_scan_dir_start(gpointer data)
 	return 0;
 }
 
-int test_scan_dir()
+gboolean cancel_scan_dir_start(gpointer data)
+{
+	int ret = MEDIA_CONTENT_ERROR_NONE;
+
+	const char *dir_path = "/opt/usr/media/Images";
+
+	ret = media_content_cancel_scan_folder(dir_path);
+
+	if(ret == MEDIA_CONTENT_ERROR_NONE)
+		media_content_debug("media_content_cancel_scan_folder is success");
+	else
+		media_content_error("media_content_cancel_scan_folder is failed");
+
+	return false;
+}
+
+int test_scan_dir(int cancel)
 {
 	GSource *source = NULL;
 	GMainContext *context = NULL;
@@ -2855,6 +2928,13 @@ int test_scan_dir()
 	source = g_idle_source_new();
 	g_source_set_callback (source, test_scan_dir_start, NULL, NULL);
 	g_source_attach (source, context);
+
+	if (cancel) {
+		GSource *cancel_src = NULL;
+		cancel_src = g_idle_source_new();
+		g_source_set_callback (cancel_src, cancel_scan_dir_start, NULL, NULL);
+		g_source_attach (cancel_src, context);
+	}
 
 	g_main_loop_run(g_loop);
 	g_main_loop_unref(g_loop);
@@ -2927,7 +3007,7 @@ gboolean _send_noti_operations(gpointer data)
 
 	/* media_info_insert_to_db */
 	media_info_h media_item = NULL;
-	char *path = "/opt/usr/media/test/image1.jpg";
+	const char *path = "/opt/usr/media/test/image1.jpg";
 
 	ret = media_info_insert_to_db(path, &media_item);
 	if (ret != MEDIA_CONTENT_ERROR_NONE) {
@@ -2940,7 +3020,7 @@ gboolean _send_noti_operations(gpointer data)
 
 	/* media_info_delete_batch_from_db */
 	filter_h filter;
-	char *condition = "MEDIA_PATH LIKE \'/opt/usr/media/test/image%%jpg\'";
+	const char *condition = "MEDIA_PATH LIKE \'/opt/usr/media/test/image%%jpg\'";
 
 	ret = media_filter_create(&filter);
 	if(ret != MEDIA_CONTENT_ERROR_NONE) {
@@ -2996,6 +3076,198 @@ int test_noti()
 
 	test_filter_destroy();
 	media_content_unset_db_updated_cb();
+
+	return ret;
+}
+
+int test_create_handle()
+{
+	int ret = MEDIA_CONTENT_ERROR_NONE;
+	media_info_h media = NULL;
+	media_info_h info = NULL;
+	const char *path = "/opt/usr/media/test_storage_path/cloud_other.txt";
+	char *str_value = NULL;
+	int int_value = -1;
+
+	ret = media_info_create_handle(&media);
+
+	ret = media_info_set_path(media, path);
+	ret = media_info_set_mime_type(media, "test_mime_type");
+	ret = media_info_set_media_type(media, MEDIA_CONTENT_TYPE_VIDEO);
+	ret = media_info_set_title(media, "test_title");
+	ret = media_info_set_album(media, "test_album");
+	ret = media_info_set_artist(media, "test_artist");
+	ret = media_info_set_genre(media, "test_genre");
+	ret = media_info_set_width(media, 1920);
+	ret = media_info_set_height(media, 1080);
+	ret = media_info_set_recorded_date(media, "test_recorded_date");
+	ret = media_info_set_thumbnail_path(media, "/opt/usr/media/test_thumbnail_path");
+	ret = media_info_set_size(media, 5555);
+	ret = media_info_set_modified_time(media, 4444);
+	ret = media_info_set_duration(media, 3333);
+	ret = media_info_set_width(media, 1111);
+	ret = media_info_set_height(media, 2222);
+	ret = media_info_set_storage_type(media, MEDIA_CONTENT_STORAGE_CLOUD);
+	ret = media_info_set_storage_id(media, "50e0c179-2940-42dd-9a9d-bce5ac4e0404");
+
+	ret = media_info_insert_to_db_with_data(media, &info);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+	{
+		media_content_error("media_info_insert_to_db_with_data failed : %d\n", ret);
+		media_info_destroy(media);
+		return ret;
+	}
+
+	ret = media_info_get_file_path(info, &str_value);
+	media_content_debug("file_path = [%s]", str_value);
+	SAFE_FREE(str_value);
+
+	ret = media_info_get_mime_type(info, &str_value);
+	media_content_debug("mime_type = [%s]", str_value);
+	SAFE_FREE(str_value);
+
+	ret = media_info_get_title(info, &str_value);
+	media_content_debug("title = [%s]", str_value);
+	SAFE_FREE(str_value);
+
+	ret = media_info_get_size(info,(unsigned long long*) &int_value);
+	media_content_debug("size = [%d]", int_value);
+
+	ret = media_info_get_modified_time(info, (time_t*)&int_value);
+	media_content_debug("time = [%d]", int_value);
+
+	ret = media_info_get_media_type(info, (media_content_type_e *)&int_value);
+	media_content_debug("media_type = [%d]", int_value);
+
+	ret = media_info_get_storage_type(info, (media_content_storage_e *)&int_value);
+	media_content_debug("storage_type = [%d]", int_value);
+
+	media_info_destroy(media);
+	media_info_destroy(info);
+
+	return ret;
+
+}
+
+int test_storage_item_insert()
+{
+	int ret = MEDIA_CONTENT_ERROR_NONE;
+
+	media_info_h media = NULL;
+
+	ret = media_info_create_handle(&media);
+	ret = media_info_set_path(media, "/opt/storage/cloud/c_storage/test_file.png");
+	ret = media_info_set_mime_type(media, "test_mime_type");
+	ret = media_info_set_title(media, "test_title");
+	ret = media_info_set_storage_type(media, MEDIA_CONTENT_STORAGE_CLOUD);
+	ret = media_info_set_storage_id(media, "2a4e8103-33e3-4846-afe9-5be4681b0dba");
+	ret = media_info_set_modified_time(media, 100);
+	ret = media_info_set_media_type(media, MEDIA_CONTENT_TYPE_IMAGE);
+	ret = media_info_insert_to_db_with_data(media, NULL);
+
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+		media_content_error("media_info_insert_to_db_with_data failed : %d\n", ret);
+
+	media_info_destroy(media);
+
+	return ret;
+}
+
+int test_storage()
+{
+	int ret = MEDIA_CONTENT_ERROR_NONE;
+
+	media_storage_h storage = NULL;
+#if 1
+	const char *storage_name = "test_storage_name";
+	const char *storage_path = "/opt/storage/cloud/c_storage/test_storage_path";
+	const char *storage_account = "test_storage_account";
+#endif
+	char *storage_id = NULL;
+	char *st_val = NULL;
+	media_content_storage_e storage_type_out = -1;
+	int storage_cnt = -1;
+
+#if 1
+	ret = media_storage_insert_to_db(storage_name, storage_path, storage_account, MEDIA_CONTENT_STORAGE_CLOUD, &storage);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+	{
+		media_content_error("media_storage_insert_to_db failed : %d\n", ret);
+		goto ERROR;
+	}
+	ret = media_storage_get_id(storage, &storage_id);
+
+	ret = media_storage_destroy(storage);
+	storage = NULL;
+#endif
+	ret = media_storage_get_storage_count_from_db(NULL, &storage_cnt);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+	{
+		media_content_error("media_storage_get_storage_count_from_db failed : %d\n", ret);
+		goto ERROR;
+	}
+	media_content_debug("storage_cnt = [%d]", storage_cnt);
+
+	ret = media_storage_get_storage_info_from_db("media", &storage);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+	{
+		media_content_error("media_storage_get_storage_info_from_db failed : %d\n", ret);
+		goto ERROR;
+	}
+
+	ret = media_storage_get_id(storage, &st_val);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+	{
+		media_content_error("media_storage_get_id failed : %d\n", ret);
+		goto ERROR;
+	}
+	media_content_debug("storage_id = [%s]", st_val);
+	SAFE_FREE(st_val);
+
+	ret = media_storage_get_name(storage, &st_val);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+	{
+		media_content_error("media_storage_get_name failed : %d\n", ret);
+		goto ERROR;
+	}
+	media_content_debug("storage_name = [%s]", st_val);
+	SAFE_FREE(st_val);
+
+	ret = media_storage_get_path(storage, &st_val);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+	{
+		media_content_error("media_storage_get_path failed : %d\n", ret);
+		goto ERROR;
+	}
+	media_content_debug("storage_path = [%s]", st_val);
+	SAFE_FREE(st_val);
+
+	ret = media_storage_get_storage_account(storage, &st_val);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+	{
+		media_content_error("media_storage_get_path failed : %d\n", ret);
+		goto ERROR;
+	}
+	media_content_debug("storage_ccount = [%s]", st_val);
+	SAFE_FREE(st_val);
+
+	ret = media_storage_get_type(storage, &storage_type_out);
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+	{
+		media_content_error("media_storage_get_type failed : %d\n", ret);
+		goto ERROR;
+	}
+	media_content_debug("storage_type = [%d]", storage_type_out);
+
+	//ret = media_storage_clone(media_storage_h *dst, media_storage_h src);
+
+	//ret = media_storage_delete_from_db(storage_id);
+
+ERROR:
+	SAFE_FREE(storage_id);
+	SAFE_FREE(st_val);
+
+	ret = media_storage_destroy(storage);
 
 	return ret;
 }
@@ -3091,11 +3363,23 @@ int main(int argc, char *argv[])
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		return MEDIA_CONTENT_ERROR_NONE;
 
-	ret = test_scan_dir();
+	ret = test_scan_dir(true);
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		return MEDIA_CONTENT_ERROR_NONE;
 
 	ret = test_noti();
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+		return MEDIA_CONTENT_ERROR_NONE;
+
+	ret = test_storage();
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+		return MEDIA_CONTENT_ERROR_NONE;
+
+	ret = test_storage_item_insert();
+	if(ret != MEDIA_CONTENT_ERROR_NONE)
+		return MEDIA_CONTENT_ERROR_NONE;
+
+	ret = test_create_handle();
 	if(ret != MEDIA_CONTENT_ERROR_NONE)
 		return MEDIA_CONTENT_ERROR_NONE;
 #endif
