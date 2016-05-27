@@ -31,7 +31,7 @@
  * The Media Content API provides functions and enumerations used in the entire Content Service.\n
  * The information about media items i.e. image, audio and video, are managed in the content database and
  * operations that involve database requires an active connection with the media content service.\n
- * During media scanning, Media Service extract media information automatically. media information include basic file info like 
+ * During media scanning, Media Service extract media information automatically. media information include basic file info like
  * path, size, modified time etc and some metadata like ID3tag, EXIF, thumbnail, etc. (thumbnail extracted only in Internal and SD card storage. \n
  * Media content services do not manage hidden files. \n
  * The API provides functions for connecting (#media_content_connect()) and disconnecting (#media_content_disconnect()) from the media content service.

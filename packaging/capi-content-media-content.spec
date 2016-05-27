@@ -1,6 +1,6 @@
 Name:       capi-content-media-content
 Summary:    A Media content library in SLP C API
-Version: 0.2.154
+Version: 0.2.156
 Release:    0
 Group:      System/Libraries
 License:    Apache-2.0

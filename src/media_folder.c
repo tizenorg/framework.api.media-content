@@ -528,7 +528,7 @@ int media_folder_set_name(media_folder_h folder, const char *name)
 			if (ignore_dir == TRUE) {
 				media_content_error("Invalid folder path");
 				SAFE_FREE(folder_path);
-				return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
+				return ret;
 			}
 
 			SAFE_FREE(g_src_path);

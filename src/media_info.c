@@ -168,7 +168,7 @@ static int __media_info_insert_batch(media_batch_insert_e insert_type, const cha
 	if (fp == NULL) {
 		media_content_error("failed to open file : [%s]", list_path);
 		media_content_stderror("failed to open file");
-		return MEDIA_CONTENT_ERROR_INVALID_OPERATION;
+		return MEDIA_CONTENT_ERROR_PERMISSION_DENIED;
 	}
 
 	for (idx = 0; idx < array_length; idx++) {

@@ -575,488 +575,488 @@ typedef bool (*media_storage_cb)(media_storage_h storage, void *user_data);
  */
 
  /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media ID. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ID "MEDIA_ID" /**< Media ID */
+#define MEDIA_ID "MEDIA_ID"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media file path. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_PATH "MEDIA_PATH"  /**< Media full path */
+#define MEDIA_PATH "MEDIA_PATH"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media base name. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_DISPLAY_NAME "MEDIA_DISPLAY_NAME"  /**< Media base name */
+#define MEDIA_DISPLAY_NAME "MEDIA_DISPLAY_NAME"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media type (0-image, 1-video, 2-sound, 3-music, 4-other). You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_TYPE "MEDIA_TYPE"  /**< Media type: 0-image, 1-video, 2-sound, 3-music, 4-other*/
+#define MEDIA_TYPE "MEDIA_TYPE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media MIME type. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_MIME_TYPE "MEDIA_MIME_TYPE"  /**< Media MIME type */
+#define MEDIA_MIME_TYPE "MEDIA_MIME_TYPE"
 
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media size. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_SIZE "MEDIA_SIZE"  /**< Media MIME size */
+#define MEDIA_SIZE "MEDIA_SIZE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media added time. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ADDED_TIME "MEDIA_ADDED_TIME"  /**< Media added time */
+#define MEDIA_ADDED_TIME "MEDIA_ADDED_TIME"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media modified time. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_MODIFIED_TIME "MEDIA_MODIFIED_TIME"  /**< Media modified time */
+#define MEDIA_MODIFIED_TIME "MEDIA_MODIFIED_TIME"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media timeline. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_TIMELINE "MEDIA_TIMELINE"  /**< Media modified time */
+#define MEDIA_TIMELINE "MEDIA_TIMELINE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media thumbnail path. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_THUMBNAIL_PATH "MEDIA_THUMBNAIL_PATH"  /**< Media thumbnail path */
+#define MEDIA_THUMBNAIL_PATH "MEDIA_THUMBNAIL_PATH"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media title get from tag or file name. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_TITLE "MEDIA_TITLE"  /**< Media title get from tag or file name */
+#define MEDIA_TITLE "MEDIA_TITLE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media album name. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ALBUM "MEDIA_ALBUM"  /**< Media album name*/
+#define MEDIA_ALBUM "MEDIA_ALBUM"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media artist. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ARTIST "MEDIA_ARTIST"  /**< Media artist*/
+#define MEDIA_ARTIST "MEDIA_ARTIST"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media album artist. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ALBUM_ARTIST "MEDIA_ALBUM_ARTIST"  /**< Media album_artist*/
+#define MEDIA_ALBUM_ARTIST "MEDIA_ALBUM_ARTIST"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media genre. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_GENRE "MEDIA_GENRE"  /**< Media genre*/
+#define MEDIA_GENRE "MEDIA_GENRE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media composer. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_COMPOSER "MEDIA_COMPOSER"  /**< Media composer*/
+#define MEDIA_COMPOSER "MEDIA_COMPOSER"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media year. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_YEAR "MEDIA_YEAR"  /**< Media year*/
+#define MEDIA_YEAR "MEDIA_YEAR"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media recorded date. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_RECORDED_DATE "MEDIA_RECORDED_DATE"  /**< Media recorded date*/
+#define MEDIA_RECORDED_DATE "MEDIA_RECORDED_DATE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media copyright. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_COPYRIGHT "MEDIA_COPYRIGHT"  /**< Media copyright*/
+#define MEDIA_COPYRIGHT "MEDIA_COPYRIGHT"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media track number. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_TRACK_NUM "MEDIA_TRACK_NUM"  /**< Media track number*/
+#define MEDIA_TRACK_NUM "MEDIA_TRACK_NUM"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media description. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_DESCRIPTION "MEDIA_DESCRIPTION"  /**< Media description*/
+#define MEDIA_DESCRIPTION "MEDIA_DESCRIPTION"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media bitrate. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_BITRATE "MEDIA_BITRATE"  /**< Media bitrate*/
+#define MEDIA_BITRATE "MEDIA_BITRATE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media bit per sample. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_BITPERSAMPLE "MEDIA_BITPERSAMPLE"  /**< Media bit per sample*/
+#define MEDIA_BITPERSAMPLE "MEDIA_BITPERSAMPLE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media samplerate. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_SAMPLERATE "MEDIA_SAMPLERATE"  /**< Media sample rate*/
+#define MEDIA_SAMPLERATE "MEDIA_SAMPLERATE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media channel. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_CHANNEL "MEDIA_CHANNEL"  /**< Media channel*/
+#define MEDIA_CHANNEL "MEDIA_CHANNEL"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media duration. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_DURATION "MEDIA_DURATION"  /**< Media duration */
+#define MEDIA_DURATION "MEDIA_DURATION"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media longitude. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_LONGITUDE "MEDIA_LONGITUDE"  /**< Media longitude */
+#define MEDIA_LONGITUDE "MEDIA_LONGITUDE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media latitude. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_LATITUDE "MEDIA_LATITUDE"  /**< Media latitude */
+#define MEDIA_LATITUDE "MEDIA_LATITUDE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media altitude. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ALTITUDE "MEDIA_ALTITUDE"  /**< Media altitude */
+#define MEDIA_ALTITUDE "MEDIA_ALTITUDE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media width. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_WIDTH "MEDIA_WIDTH"  /**< Media width*/
+#define MEDIA_WIDTH "MEDIA_WIDTH"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media height. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_HEIGHT "MEDIA_HEIGHT"  /**< Media height*/
+#define MEDIA_HEIGHT "MEDIA_HEIGHT"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media datataken. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_DATETAKEN "MEDIA_DATETAKEN"  /**< Media datetaken*/
+#define MEDIA_DATETAKEN "MEDIA_DATETAKEN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media orientation. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ORIENTATION "MEDIA_ORIENTATION"  /**< Media orientation*/
+#define MEDIA_ORIENTATION "MEDIA_ORIENTATION"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media burst ID. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_BURST_ID "BURST_ID"  /**< Media burst ID*/
+#define MEDIA_BURST_ID "BURST_ID"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media played count. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_PLAYED_COUNT "MEDIA_PLAYED_COUNT"  /**< Media playedcount*/
+#define MEDIA_PLAYED_COUNT "MEDIA_PLAYED_COUNT"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media last played time. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_LAST_PLAYED_TIME "MEDIA_LAST_PLAYED_TIME"  /**< Media last played time*/
+#define MEDIA_LAST_PLAYED_TIME "MEDIA_LAST_PLAYED_TIME"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media last played position of file. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_LAST_PLAYED_POSITION "MEDIA_LAST_PLAYED_POSITION"  /**< Media last played position of file*/
+#define MEDIA_LAST_PLAYED_POSITION "MEDIA_LAST_PLAYED_POSITION"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media rating. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_RATING "MEDIA_RATING"  /**< Media rating*/
+#define MEDIA_RATING "MEDIA_RATING"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media favourite (0-not favourite, 1-favourite). You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_FAVOURITE "MEDIA_FAVOURITE"  /**< 0-not favourite, 1-favourite*/
+#define MEDIA_FAVOURITE "MEDIA_FAVOURITE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media author. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_AUTHOR "MEDIA_AUTHOR"  /**< Media authore*/
+#define MEDIA_AUTHOR "MEDIA_AUTHOR"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media provider. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_PROVIDER "MEDIA_PROVIDER"  /**< Media provider*/
+#define MEDIA_PROVIDER "MEDIA_PROVIDER"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media content name. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_CONTENT_NAME "MEDIA_CONTENT_NAME"  /**< Media content name*/
+#define MEDIA_CONTENT_NAME "MEDIA_CONTENT_NAME"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media category. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_CATEGORY "MEDIA_CATEGORY"  /**< Media category*/
+#define MEDIA_CATEGORY "MEDIA_CATEGORY"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media location tag. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_LOCATION_TAG "MEDIA_LOCATION_TAG"  /**< Media location tag*/
+#define MEDIA_LOCATION_TAG "MEDIA_LOCATION_TAG"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media age rating. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_AGE_RATING "MEDIA_AGE_RATING"  /**< Media age rating*/
+#define MEDIA_AGE_RATING "MEDIA_AGE_RATING"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media keyword. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_KEYWORD "MEDIA_KEYWORD"  /**< Media keyword*/
+#define MEDIA_KEYWORD "MEDIA_KEYWORD"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media weather. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_WEATHER "MEDIA_WEATHER"  /**< Media weather*/
+#define MEDIA_WEATHER "MEDIA_WEATHER"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Is DRM (0-not drm, 1-drm). You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_IS_DRM "MEDIA_IS_DRM"  /**< Is DRM. 0-not drm, 1-drm*/
+#define MEDIA_IS_DRM "MEDIA_IS_DRM"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media storage type (0-internal storage, 1-external storage). You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_STORAGE_TYPE "MEDIA_STORAGE_TYPE"  /**< Media storage. 0-internal storage, 1-external storage*/
+#define MEDIA_STORAGE_TYPE "MEDIA_STORAGE_TYPE"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media exposure time. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen 2.4
  *
  */
-#define MEDIA_EXPOSURE_TIME "MEDIA_EXPOSURE_TIME"	/**< media exposure_time*/
+#define MEDIA_EXPOSURE_TIME "MEDIA_EXPOSURE_TIME"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media f-number. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen 2.4
  *
  */
-#define MEDIA_FNUMBER "MEDIA_FNUMBER"	/**< media fnumber*/
+#define MEDIA_FNUMBER "MEDIA_FNUMBER"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media ISO. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen 2.4
  *
  */
-#define MEDIA_ISO "MEDIA_ISO"	/**< media iso*/
+#define MEDIA_ISO "MEDIA_ISO"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media model. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen 2.4
  *
  */
-#define MEDIA_MODEL "MEDIA_MODEL"	/**< media model*/
+#define MEDIA_MODEL "MEDIA_MODEL"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media file name pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_FILE_NAME_PINYIN "MEDIA_FILE_NAME_PINYIN"  /**< Media file name pinyin */
+#define MEDIA_FILE_NAME_PINYIN "MEDIA_FILE_NAME_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media title pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_TITLE_PINYIN "MEDIA_TITLE_PINYIN"  /**< Media title pinyin */
+#define MEDIA_TITLE_PINYIN "MEDIA_TITLE_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media album name pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ALBUM_PINYIN "MEDIA_ALBUM_PINYIN"  /**< Media album pinyin*/
+#define MEDIA_ALBUM_PINYIN "MEDIA_ALBUM_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media artist pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ARTIST_PINYIN "MEDIA_ARTIST_PINYIN"  /**< Media artist pinyin*/
+#define MEDIA_ARTIST_PINYIN "MEDIA_ARTIST_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media album artist pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_ALBUM_ARTIST_PINYIN "MEDIA_ALBUM_ARTIST_PINYIN"  /**< Media album_artist pinyin*/
+#define MEDIA_ALBUM_ARTIST_PINYIN "MEDIA_ALBUM_ARTIST_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media genre pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_GENRE_PINYIN "MEDIA_GENRE_PINYIN"  /**< Media genre pinyin*/
+#define MEDIA_GENRE_PINYIN "MEDIA_GENRE_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media composer pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_COMPOSER_PINYIN "MEDIA_COMPOSER_PINYIN"  /**< Media composer pinyin*/
+#define MEDIA_COMPOSER_PINYIN "MEDIA_COMPOSER_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media copyright pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_COPYRIGHT_PINYIN "MEDIA_COPYRIGHT_PINYIN"  /**< Media copyright pinyin*/
+#define MEDIA_COPYRIGHT_PINYIN "MEDIA_COPYRIGHT_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media description pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_DESCRIPTION_PINYIN "MEDIA_DESCRIPTION_PINYIN"  /**< Media description pinyin*/
+#define MEDIA_DESCRIPTION_PINYIN "MEDIA_DESCRIPTION_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media author pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_AUTHOR_PINYIN "MEDIA_AUTHOR_PINYIN"  /**< Media authore pinyin*/
+#define MEDIA_AUTHOR_PINYIN "MEDIA_AUTHOR_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media provider pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_PROVIDER_PINYIN "MEDIA_PROVIDER_PINYIN"  /**< Media provider pinyin*/
+#define MEDIA_PROVIDER_PINYIN "MEDIA_PROVIDER_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media content name pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_CONTENT_NAME_PINYIN "MEDIA_CONTENT_NAME_PINYIN"  /**< Media content name pinyin*/
+#define MEDIA_CONTENT_NAME_PINYIN "MEDIA_CONTENT_NAME_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media category pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_CATEGORY_PINYIN "MEDIA_CATEGORY_PINYIN"  /**< Media category pinyin*/
+#define MEDIA_CATEGORY_PINYIN "MEDIA_CATEGORY_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media location tag pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_LOCATION_TAG_PINYIN "MEDIA_LOCATION_TAG_PINYIN"  /**< Media location tag pinyin*/
+#define MEDIA_LOCATION_TAG_PINYIN "MEDIA_LOCATION_TAG_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media age rating pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_AGE_RATING_PINYIN "MEDIA_AGE_RATING_PINYIN"  /**< Media age rating pinyin*/
+#define MEDIA_AGE_RATING_PINYIN "MEDIA_AGE_RATING_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of media filter and order keyword.
+ * @brief Media keyword pinyin. You can use above define to set the condition of media filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  *
  */
-#define MEDIA_KEYWORD_PINYIN "MEDIA_KEYWORD_PINYIN"  /**< Media keyword pinyin*/
+#define MEDIA_KEYWORD_PINYIN "MEDIA_KEYWORD_PINYIN"
 
 /**
  * @}
@@ -1069,52 +1069,52 @@ typedef bool (*media_storage_cb)(media_storage_h storage, void *user_data);
  */
 
  /**
- * @brief You can use above define to set the condition of folder filter and order keyword.
+ * @brief Folder ID. You can use above define to set the condition of folder filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
-#define FOLDER_ID "FOLDER_ID"  /**< Folder ID */
+#define FOLDER_ID "FOLDER_ID"
 
 /**
-* @brief You can use above define to set the condition of folder filter and order keyword.
+* @brief Folder path. You can use above define to set the condition of folder filter and order keyword.
 * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
-#define FOLDER_PATH "FOLDER_PATH"  /**< Folder full path */
+#define FOLDER_PATH "FOLDER_PATH"
 
 /**
-* @brief You can use above define to set the condition of folder filter and order keyword.
+* @brief Folder base name. You can use above define to set the condition of folder filter and order keyword.
 * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
-#define FOLDER_NAME "FOLDER_NAME"  /**< Folder base name */
+#define FOLDER_NAME "FOLDER_NAME"
 
 /**
-* @brief You can use above define to set the condition of folder filter and order keyword.
+* @brief Folder modified time. You can use above define to set the condition of folder filter and order keyword.
 * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
-#define FOLDER_MODIFIED_TIME "FOLDER_MODIFIED_TIME"  /**< Folder modified time */
+#define FOLDER_MODIFIED_TIME "FOLDER_MODIFIED_TIME"
 
 /**
-* @brief You can use above define to set the condition of folder filter and order keyword.
+* @brief Folder storage type (0-internal storage, 1-external storage). You can use above define to set the condition of folder filter and order keyword.
 * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
-#define FOLDER_STORAGE_TYPE "FOLDER_STORAGE_TYPE"  /**< Folder storage. 0-internal storage, 1-external storage*/
+#define FOLDER_STORAGE_TYPE "FOLDER_STORAGE_TYPE"
 
 /**
-* @brief You can use above define to set the condition of folder filter and order keyword.
+* @brief Folder name pinyin. You can use above define to set the condition of folder filter and order keyword.
 * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
 */
-#define FOLDER_NAME_PINYIN "FOLDER_NAME_PINYIN"  /**< Folder base name pinyin*/
+#define FOLDER_NAME_PINYIN "FOLDER_NAME_PINYIN"
 
 /**
- * @brief You can use above define to set the condition of folder filter and order keyword.
+ * @brief Folder order info. You can use above define to set the condition of folder filter and order keyword.
  * @since_tizen 2.4
  */
-#define FOLDER_ORDER "FOLDER_ORDER"  /**< Folder order info */
+#define FOLDER_ORDER "FOLDER_ORDER"
 
 /**
- * @brief You can use above define to set the condition of folder filter and order keyword.
+ * @brief Parent folder ID. You can use above define to set the condition of folder filter and order keyword.
  * @since_tizen 2.4
  */
-#define FOLDER_PARENT_FOLDER_ID "FOLDER_PARENT_FOLDER_ID"	/**< parent folder id */
+#define FOLDER_PARENT_FOLDER_ID "FOLDER_PARENT_FOLDER_ID"
 
 /**
  * @}
@@ -1123,22 +1123,25 @@ typedef bool (*media_storage_cb)(media_storage_h storage, void *user_data);
 /**
  * @addtogroup CAPI_CONTENT_MEDIA_PLAYLIST_MODULE
  * @{
- * @brief You can use above define to set the condition of playlist filter and order keyword.
+ */
+
+ /**
+ * @brief Playlist name. You can use above define to set the condition of playlist filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
-#define PLAYLIST_NAME "PLAYLIST_NAME"  /**< Playlist name */
+#define PLAYLIST_NAME "PLAYLIST_NAME"
 
 /**
- * @brief You can use above define to set the condition of playlist filter and order keyword.
+ * @brief Member order info in playlist. You can use above define to set the condition of playlist filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
-#define PLAYLIST_MEMBER_ORDER "PLAYLIST_MEMBER_ORDER"  /**< Playlist name */
+#define PLAYLIST_MEMBER_ORDER "PLAYLIST_MEMBER_ORDER"
 
 /**
- * @brief You can use above define to set the condition of playlist filter and order keyword.
+ * @brief Media count in playlist view. You can use above define to set the condition of playlist filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
-#define PLAYLIST_MEDIA_COUNT "PLAYLIST_MEDIA_COUNT"  /**< Media count in playlist view */
+#define PLAYLIST_MEDIA_COUNT "PLAYLIST_MEDIA_COUNT"
 
 /**
  * @}
@@ -1147,16 +1150,19 @@ typedef bool (*media_storage_cb)(media_storage_h storage, void *user_data);
 /**
  * @addtogroup CAPI_CONTENT_MEDIA_TAG_MODULE
  * @{
- * @brief You can use above define to set the condition of tag filter and order keyword.
+ */
+
+ /**
+ * @brief Tag name. You can use above define to set the condition of tag filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
-#define TAG_NAME "TAG_NAME"  /**< Tag name */
+#define TAG_NAME "TAG_NAME"
 
 /**
- * @brief You can use above define to set the condition of tag filter and order keyword.
+ * @brief Media count in tag view. You can use above define to set the condition of tag filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
-#define TAG_MEDIA_COUNT "TAG_MEDIA_COUNT"  /**< Media count in tag view */
+#define TAG_MEDIA_COUNT "TAG_MEDIA_COUNT"
 
 /**
  * @}
@@ -1165,10 +1171,13 @@ typedef bool (*media_storage_cb)(media_storage_h storage, void *user_data);
 /**
  * @addtogroup CAPI_CONTENT_MEDIA_BOOKMARK_MODULE
  * @{
- * @brief You can use above define to set the condition of bookmark filter and order keyword.
+ */
+
+/**
+ * @brief Marked time in bookmark. You can use above define to set the condition of bookmark filter and order keyword.
  * @since_tizen @if MOBILE 2.3 @elseif WEARABLE 2.3.1 @endif
  */
-#define BOOKMARK_MARKED_TIME "BOOKMARK_MARKED_TIME"  /**< Bookmark marked time */
+#define BOOKMARK_MARKED_TIME "BOOKMARK_MARKED_TIME"
 
 /**
  * @}
@@ -1177,16 +1186,19 @@ typedef bool (*media_storage_cb)(media_storage_h storage, void *user_data);
 /**
  * @addtogroup CAPI_CONTENT_MEDIA_STORAGE_MODULE
  * @{
- * @brief You can use above define to set the condition of storage filter and order keyword.
- * @since_tizen 2.4
  */
-#define MEDIA_STORAGE_ID					"STORAGE_ID"  /**< Storage ID */
 
 /**
- * @brief You can use above define to set the condition of storage filter and order keyword.
+ * @brief Media storage ID. You can use above define to set the condition of storage filter and order keyword.
  * @since_tizen 2.4
  */
-#define MEDIA_STORAGE_PATH				"STORAGE_PATH"  /**< Storage path */
+#define MEDIA_STORAGE_ID					"STORAGE_ID"
+
+/**
+ * @brief Media storage path. You can use above define to set the condition of storage filter and order keyword.
+ * @since_tizen 2.4
+ */
+#define MEDIA_STORAGE_PATH				"STORAGE_PATH"
 
 /**
  * @}

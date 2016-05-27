@@ -103,7 +103,11 @@ int _media_util_check_ignore_dir(const char *dir_path, bool *ignore)
 			*ignore = TRUE;
 			media_content_error("Open Directory fail");
 			media_content_sec_debug("Open fail path[%s]", search_path);
-			return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
+			if (errno == EACCES || errno == EPERM) {
+				return MEDIA_CONTENT_ERROR_PERMISSION_DENIED;
+			} else {
+				return MEDIA_CONTENT_ERROR_INVALID_PARAMETER;
+			}
 		}
 
 		media_content_retvm_if(dp == NULL, MEDIA_CONTENT_ERROR_INVALID_OPERATION, "Open Directory fail");
